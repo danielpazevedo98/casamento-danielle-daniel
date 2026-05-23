@@ -27,7 +27,7 @@ export default function Admin() {
   };
   
   const login = () => {
-    if (pw === "danieldanielle2026") {
+    if (pw === "C@fecomleite1998") {
       setAuth(true);
     } else {
       alert("Senha incorreta");
