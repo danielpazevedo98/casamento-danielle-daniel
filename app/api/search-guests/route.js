@@ -8,10 +8,13 @@ export async function GET(request) {
   if (!q || q.length < 2) return NextResponse.json([]);
   
   const supabase = supabaseAdmin();
+  
+  // MUDANÇA: Só mostrar convidados VERDES e NÃO confirmados
   const { data, error } = await supabase
     .from("guests")
     .select("*")
     .ilike("name", `%${q}%`)
+    .eq("color", "Verde")
     .eq("confirmed", false)
     .limit(10);
   
