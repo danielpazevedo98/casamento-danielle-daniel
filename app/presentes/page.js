@@ -8,7 +8,9 @@ export default function Presentes() {
   
   useEffect(() => {
     fetch("/api/gifts").then(r => r.json()).then(data => {
-      setGifts(data);
+      // MUDANÇA: Ordenar por preço crescente
+      const sorted = data.sort((a, b) => a.price - b.price);
+      setGifts(sorted);
       setLoading(false);
     });
   }, []);
