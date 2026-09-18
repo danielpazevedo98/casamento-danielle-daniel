@@ -4,28 +4,30 @@ import Contagem from "@/components/Contagem";
 import { Flores, FotoMoldura } from "@/components/Enfeites";
 import { EVENTO } from "@/lib/evento";
 
+// Uma coluna so: nomes e convite em cima, foto dos noivos embaixo, contagem no fim.
 export default function Inicio() {
   return (
     <Layout>
       <div className="min-h-screen flex flex-col bg-blush">
-        <div className="flex-1 grid lg:grid-cols-2">
-          <div className="relative flex flex-col justify-center px-8 md:px-16 pt-20 pb-12 lg:py-16">
-            <Flores className="absolute w-44 top-0 right-0" />
-            <div className="flex items-center gap-3 mb-6">
+        <section className="relative overflow-hidden px-6 md:px-16 pt-20 pb-14 md:pt-24 md:pb-20 text-center">
+          <Flores className="absolute w-32 md:w-44 top-0 right-0" />
+          <div className="relative max-w-2xl mx-auto">
+            <div className="flex items-center justify-center gap-3 mb-6">
               <div className="h-px w-8 bg-fuchsia" />
               <p className="text-xs tracking-[0.4em] text-fuchsia font-sans font-medium">ESTAMOS NOS CASANDO</p>
+              <div className="h-px w-8 bg-fuchsia" />
             </div>
-            <h1 className="font-serif text-6xl xl:text-8xl text-deep font-light leading-none">Danielle</h1>
-            <p className="font-serif italic text-3xl xl:text-4xl text-fuchsia my-3 pl-2">&amp;</p>
-            <h1 className="font-serif text-6xl xl:text-8xl text-deep font-light leading-none">Daniel</h1>
+            <h1 className="font-serif text-6xl md:text-8xl text-deep font-light leading-none">Danielle</h1>
+            <p className="font-serif italic text-3xl md:text-4xl text-fuchsia my-3">&amp;</p>
+            <h1 className="font-serif text-6xl md:text-8xl text-deep font-light leading-none">Daniel</h1>
 
-            <div className="mt-10 flex items-center gap-4">
+            <div className="mt-10 flex items-center justify-center gap-4">
               <div className="h-px flex-1 max-w-[60px] bg-gradient-to-r from-transparent to-fuchsia" />
               <p className="text-sm tracking-[0.3em] text-deep font-sans">{EVENTO.dataCurta}</p>
               <div className="h-px flex-1 max-w-[60px] bg-gradient-to-r from-fuchsia to-transparent" />
             </div>
 
-            <p className="mt-10 max-w-lg font-serif text-xl italic text-wine leading-relaxed">
+            <p className="mt-10 max-w-lg mx-auto font-serif text-lg md:text-xl italic text-wine leading-relaxed text-balance">
               &ldquo;De toda a gente do mundo, escolhemos nós dois.
               <br />
               De todos os dias, escolhemos este.
@@ -33,11 +35,11 @@ export default function Inicio() {
               Que tal celebrar com a gente?&rdquo;
             </p>
 
-            <div className="mt-12 flex flex-wrap gap-4">
-              <Link href="/confirmacao" className="px-8 py-3 bg-wine text-blush font-sans text-xs tracking-[0.25em] hover:bg-fuchsia transition-colors">
+            <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/confirmacao" className="w-64 sm:w-auto text-center px-8 py-3 bg-wine text-blush font-sans text-xs tracking-[0.25em] hover:bg-fuchsia transition-colors">
                 CONFIRMAR PRESENÇA
               </Link>
-              <Link href="/presentes" className="px-8 py-3 border border-fuchsia text-fuchsia font-sans text-xs tracking-[0.25em] hover:bg-fuchsia hover:text-blush transition-colors">
+              <Link href="/presentes" className="w-64 sm:w-auto text-center px-8 py-3 border border-fuchsia text-fuchsia font-sans text-xs tracking-[0.25em] hover:bg-fuchsia hover:text-blush transition-colors">
                 LISTA DE PRESENTES
               </Link>
             </div>
@@ -47,12 +49,13 @@ export default function Inicio() {
               </p>
             )}
           </div>
+        </section>
 
-          <div className="relative flex items-center justify-center bg-petal px-10 py-14 lg:p-12">
-            <FotoMoldura src={EVENTO.fotoNoivos} alt="Danielle e Daniel" desenho="noivos" legenda="Foto dos noivos · em breve" prioridade />
-            <Flores className="absolute w-40 bottom-0 right-0 rotate-180" />
-          </div>
-        </div>
+        <section className="relative overflow-hidden bg-petal px-10 py-14 md:py-20">
+          <FotoMoldura src={EVENTO.fotoNoivos} alt="Danielle e Daniel" desenho="noivos" legenda="Foto dos noivos · em breve" prioridade />
+          <Flores className="absolute w-32 md:w-40 bottom-0 right-0 rotate-180" />
+        </section>
+
         <Contagem />
       </div>
     </Layout>

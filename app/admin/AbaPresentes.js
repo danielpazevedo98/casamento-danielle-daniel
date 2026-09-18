@@ -215,7 +215,7 @@ export default function AbaPresentes({ dados, recarregar }) {
             <tr key={p.id} className={p.publicado ? "hover:bg-blush/50" : "bg-stone-50 text-wine/70"}>
               <td className={cls.td}>
                 <div className="w-10 border border-dust/60">
-                  <IlustracaoPresente presente={p} />
+                  <IlustracaoPresente presente={p} tamanho="mini" />
                 </div>
               </td>
               <td className={cls.td}>

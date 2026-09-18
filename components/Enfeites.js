@@ -73,21 +73,29 @@ const DESENHOS = {
   ),
 };
 
-// Foto 4:5 com moldura deslocada. Sem foto, mostra o desenho do prototipo.
-export function FotoMoldura({ src, alt, desenho = "noivos", legenda, prioridade = false }) {
+// Formatos da foto: "retrato" (4:5, foto dos noivos) ou "paisagem" (3:2, locais).
+const FORMATOS = {
+  retrato: { caixa: "max-w-md", proporcao: "aspect-[4/5]", sizes: "(min-width: 768px) 28rem, 90vw" },
+  paisagem: { caixa: "max-w-xl", proporcao: "aspect-[3/2]", sizes: "(min-width: 768px) 36rem, 90vw" },
+};
+
+// Foto com moldura deslocada. Sem foto, mostra o desenho do prototipo.
+export function FotoMoldura({ src, alt, desenho = "noivos", legenda, prioridade = false, formato = "retrato" }) {
+  const f = FORMATOS[formato];
   return (
-    <div className="relative w-full max-w-md mx-auto">
+    <div className={`relative w-full ${f.caixa} mx-auto`}>
       <div className="absolute -top-3 -left-3 md:-top-4 md:-left-4 w-full h-full border border-fuchsia/40" aria-hidden="true" />
-      <div className="relative w-full aspect-[4/5] overflow-hidden bg-gradient-to-br from-blush via-petal to-dust">
+      <div className={`relative w-full ${f.proporcao} overflow-hidden bg-gradient-to-br from-blush via-petal to-dust`}>
         {src ? (
-          <Image src={src} alt={alt} fill priority={prioridade} sizes="(min-width: 768px) 28rem, 90vw" className="object-cover" />
+          <Image src={src} alt={alt} fill priority={prioridade} sizes={f.sizes} className="object-cover" />
         ) : (
           <>
-            <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            {/* O desenho ocupa a parte de cima e a legenda fica sozinha embaixo. */}
+            <svg viewBox="0 20 200 150" className="absolute inset-x-0 top-[6%] w-full h-[64%] md:h-[70%]" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
               {DESENHOS[desenho]}
             </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-end pb-10 text-center px-6">
-              <div className="w-12 h-px mb-3 bg-wine/50" />
+            <div className="absolute inset-0 flex flex-col items-center justify-end pb-5 md:pb-8 text-center px-6">
+              <div className="hidden md:block w-12 h-px mb-3 bg-wine/50" />
               <p className="font-serif italic text-deep tracking-wide">{legenda}</p>
               <div className="w-12 h-px mt-3 bg-wine/50" />
             </div>

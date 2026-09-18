@@ -193,7 +193,7 @@ export default function Confirmacao() {
                 {membros.map((m) => (
                   <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 border border-dust px-4 py-3">
                     <span className="font-serif text-lg text-deep">{m.nome}</span>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 w-full sm:w-auto">
                       {[
                         ["vai", "Vai", "bg-wine text-blush border-wine"],
                         ["nao_vai", "Não vai", "bg-wine/60 text-blush border-wine/60"],
@@ -202,7 +202,7 @@ export default function Confirmacao() {
                           key={valor}
                           onClick={() => setRespostas((r) => ({ ...r, [m.id]: valor }))}
                           aria-pressed={respostas[m.id] === valor}
-                          className={`px-4 py-2 border font-sans text-xs tracking-[0.15em] transition-colors ${
+                          className={`flex-1 sm:flex-none px-4 py-2.5 sm:py-2 border font-sans text-xs tracking-[0.15em] transition-colors ${
                             respostas[m.id] === valor ? on : "border-dust text-wine/70 hover:border-wine"
                           }`}
                         >
@@ -228,7 +228,7 @@ export default function Confirmacao() {
               >
                 {enviando ? "ENVIANDO..." : "CONFIRMAR"}
               </button>
-              <button onClick={recomecar} className="w-full mt-3 py-2 font-sans text-xs tracking-[0.2em] text-wine hover:text-deep">
+              <button onClick={recomecar} className="w-full mt-3 py-2 font-sans text-[0.7rem] sm:text-xs tracking-[0.1em] sm:tracking-[0.2em] text-wine hover:text-deep">
                 ← NÃO SOU EU, BUSCAR OUTRO NOME
               </button>
             </div>

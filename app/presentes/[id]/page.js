@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Layout from "@/components/Layout";
@@ -41,6 +41,7 @@ export default function PresenteDetalhes() {
   const [enviando, setEnviando] = useState(null);
   const [erro, setErro] = useState("");
   const [pix, setPix] = useState(null);
+  const areaPix = useRef(null);
 
   useEffect(() => {
     fetch(`/api/presentes?id=${encodeURIComponent(id)}`)
@@ -70,8 +71,12 @@ export default function PresenteDetalhes() {
     }
     setEnviando(null);
     setPix(resp);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Com o Pix gerado, leva a tela ate o QR Code (no celular ele fica abaixo da imagem).
+  useEffect(() => {
+    if (pix) areaPix.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [pix]);
 
   const jaPaguei = async () => {
     setEnviando("informar");
@@ -140,7 +145,7 @@ export default function PresenteDetalhes() {
 
           <div className="grid lg:grid-cols-[1fr_1.1fr] bg-white border border-dust shadow-lg">
             <div className="lg:border-r border-dust">
-              <IlustracaoPresente presente={presente} grande />
+              <IlustracaoPresente presente={presente} tamanho="grande" />
               <div className="p-6 md:p-8">
                 <p className="text-[0.65rem] tracking-[0.3em] text-fuchsia font-sans mb-2">
                   {(presente.categoria || "").toUpperCase()}
@@ -151,10 +156,10 @@ export default function PresenteDetalhes() {
               </div>
             </div>
 
-            <div className="p-6 md:p-8">
+            <div ref={areaPix} className="p-6 md:p-8 scroll-mt-4">
               {!pix ? (
                 <>
-                  <p className="text-xs tracking-[0.4em] text-fuchsia font-sans font-medium mb-6">QUEM ESTÁ PRESENTEANDO?</p>
+                  <p className="text-xs tracking-[0.25em] sm:tracking-[0.4em] text-fuchsia font-sans font-medium mb-6">QUEM ESTÁ PRESENTEANDO?</p>
                   <div className="space-y-4">
                     <div>
                       <label className={rotulo} htmlFor="nome">SEU NOME</label>

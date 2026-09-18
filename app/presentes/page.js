@@ -106,25 +106,34 @@ export default function Presentes() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            // No celular cada presente vira uma linha (miniatura + texto), para os
+            // 100 e tantos itens nao virarem uma rolagem sem fim; do tablet para
+            // cima, cartoes em grade.
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
               {lista.map((p) => (
                 <Link
                   key={p.id}
                   href={`/presentes/${p.id}`}
-                  className="group bg-white border border-dust hover:shadow-lg transition-shadow flex flex-col"
+                  className="group bg-white border border-dust hover:shadow-lg transition-shadow flex sm:flex-col"
                 >
-                  <div className="overflow-hidden">
-                    <div className="transition-transform duration-500 group-hover:scale-105">
-                      <IlustracaoPresente presente={p} />
+                  <div className="w-24 min-[360px]:w-28 shrink-0 sm:w-full overflow-hidden">
+                    <div className="h-full sm:h-auto transition-transform duration-500 group-hover:scale-105">
+                      <IlustracaoPresente presente={p} coluna />
                     </div>
                   </div>
-                  <div className="p-5 flex-1 flex flex-col">
-                    <p className="text-[0.65rem] tracking-[0.3em] text-fuchsia font-sans mb-2">{(p.categoria || "").toUpperCase()}</p>
-                    <h3 className="font-serif text-xl text-deep leading-snug mb-2">{p.nome}</h3>
-                    {p.descricao && <p className="font-serif italic text-wine mb-4 flex-1">{p.descricao}</p>}
-                    <div className="flex items-center justify-between gap-3 mt-auto pt-2">
-                      <p className="font-sans text-lg text-fuchsia font-medium">{reais(p.preco)}</p>
-                      <span className="px-5 py-2 bg-wine text-blush font-sans text-xs tracking-[0.25em] group-hover:bg-fuchsia transition-colors">
+                  <div className="p-4 sm:p-5 flex-1 min-w-0 flex flex-col">
+                    <p className="text-[0.6rem] sm:text-[0.65rem] tracking-[0.3em] text-fuchsia font-sans mb-1 sm:mb-2">
+                      {(p.categoria || "").toUpperCase()}
+                    </p>
+                    <h3 className="font-serif text-lg sm:text-xl text-deep leading-snug mb-1 sm:mb-2">{p.nome}</h3>
+                    {p.descricao && (
+                      <p className="font-serif italic text-sm sm:text-base text-wine mb-3 sm:mb-4 sm:flex-1 line-clamp-2 sm:line-clamp-none">
+                        {p.descricao}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center justify-between gap-2 mt-auto sm:pt-2">
+                      <p className="font-sans text-base sm:text-lg text-fuchsia font-medium whitespace-nowrap">{reais(p.preco)}</p>
+                      <span className="px-3 sm:px-5 py-1.5 sm:py-2 bg-wine text-blush font-sans text-[0.65rem] sm:text-xs tracking-[0.2em] sm:tracking-[0.25em] group-hover:bg-fuchsia transition-colors">
                         PRESENTEAR
                       </span>
                     </div>
