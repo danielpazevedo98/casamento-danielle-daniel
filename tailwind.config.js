@@ -1,11 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./app/**/*.{js,jsx}", "./components/**/*.{js,jsx}"],
+  // relative: caminhos contados a partir deste arquivo, nao da pasta onde o comando rodou.
+  content: { relative: true, files: ["./app/**/*.{js,jsx}", "./components/**/*.{js,jsx}"] },
   theme: {
     extend: {
       fontFamily: {
-        serif: ['"Cormorant Garamond"', "serif"],
-        sans: ['"Outfit"', "sans-serif"],
+        serif: ["var(--font-serif)", '"Cormorant Garamond"', "serif"],
+        sans: ["var(--font-sans)", '"Outfit"', "sans-serif"],
       },
       colors: {
         // Paleta rosa v3

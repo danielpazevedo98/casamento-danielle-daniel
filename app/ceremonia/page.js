@@ -1,4 +1,16 @@
-import Layout from "@/components/Layout";
+import PaginaEvento from "@/components/PaginaEvento";
+import { EVENTO } from "@/lib/evento";
+
+export const metadata = { title: "Cerimônia · Danielle & Daniel" };
+
 export default function Ceremonia() {
-  return <Layout><div className="min-h-screen bg-blush px-6 md:px-16 py-16"><div className="max-w-4xl mx-auto"><div className="text-center mb-12"><div className="flex items-center justify-center gap-3 mb-3"><div className="h-px w-6 bg-fuchsia"/><p className="text-xs tracking-[0.4em] text-fuchsia font-sans font-medium">ONDE TUDO COMEÇA</p><div className="h-px w-6 bg-fuchsia"/></div><h2 className="font-serif text-5xl text-deep font-light">Cerimônia</h2></div><div className="bg-white p-10 border border-dust shadow-lg"><div className="text-center mb-8"><p className="text-xs tracking-[0.5em] text-fuchsia font-sans font-medium mb-4">NOSSO ENCONTRO</p><p className="font-serif text-2xl text-deep mb-2">Igreja Sagrado Coração de Jesus</p></div><div className="grid grid-cols-2 gap-4 mb-6 text-center border-t border-b border-dust py-6"><div><p className="text-xs tracking-[0.35em] text-fuchsia font-sans mb-2">DATA</p><p className="font-serif text-xl text-deep">27 nov</p><p className="font-serif italic text-sm text-wine">sexta · 2026</p></div><div className="border-l border-dust"><p className="text-xs tracking-[0.35em] text-fuchsia font-sans mb-2">HORÁRIO</p><p className="font-serif text-xl text-deep">19h00</p><p className="font-serif italic text-sm text-wine">pontualmente</p></div></div><div className="text-center mb-8"><p className="text-xs tracking-[0.35em] text-fuchsia font-sans mb-2">ENDEREÇO</p><p className="font-serif text-lg text-deep">Rua Carolina Santos, 143</p><p className="font-serif italic text-wine">Lins de Vasconcelos · Rio de Janeiro</p><p className="text-xs tracking-[0.25em] text-gold font-sans mt-2">CEP 20720-310</p></div><a href="https://www.google.com/maps/search/?api=1&query=Igreja+Sagrado+Cora%C3%A7%C3%A3o+de+Jesus+Rua+Carolina+Santos+143+Rio+de+Janeiro" target="_blank" rel="noopener noreferrer" className="w-full flex items-center justify-center gap-3 px-7 py-3 bg-wine text-blush font-sans text-xs tracking-[0.3em] hover:bg-fuchsia transition-colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 22s-7-7.58-7-12a7 7 0 0114 0c0 4.42-7 12-7 12z" stroke="currentColor" strokeWidth="1.5"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5"/></svg>VER NO GOOGLE MAPS</a></div></div></div></Layout>;
+  return (
+    <PaginaEvento
+      sobre="ONDE TUDO COMEÇA"
+      titulo="Cerimônia"
+      local={EVENTO.cerimonia}
+      desenho="igreja"
+      legendaFoto="Foto da igreja · em breve"
+    />
+  );
 }

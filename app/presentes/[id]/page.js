@@ -1,111 +1,215 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Layout from "@/components/Layout";
+import IlustracaoPresente from "@/components/IlustracaoPresente";
+import { reais } from "@/lib/formato";
+
+const campo =
+  "w-full py-3 px-4 bg-white border border-dust focus:outline-none focus:border-fuchsia font-serif text-lg text-deep";
+const rotulo = "block mb-1 text-[0.7rem] tracking-[0.2em] text-wine font-sans";
+
+function Copiar({ texto, children }) {
+  const [ok, setOk] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(texto);
+          setOk(true);
+          setTimeout(() => setOk(false), 2500);
+        } catch {
+          window.prompt("Copie o texto abaixo:", texto);
+        }
+      }}
+      className="w-full py-3 border border-fuchsia text-fuchsia font-sans text-xs tracking-[0.25em] hover:bg-fuchsia hover:text-blush transition-colors"
+    >
+      {ok ? "COPIADO ✓" : children}
+    </button>
+  );
+}
 
 export default function PresenteDetalhes() {
-  const params = useParams();
+  const { id } = useParams();
   const router = useRouter();
-  const [gift, setGift] = useState(null);
-  const [step, setStep] = useState(1);
-  const [name, setName] = useState("");
+  const [dados, setDados] = useState(undefined);
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(true);
-  
+  const [mensagem, setMensagem] = useState("");
+  const [enviando, setEnviando] = useState(null);
+  const [erro, setErro] = useState("");
+  const [pix, setPix] = useState(null);
+
   useEffect(() => {
-    fetch(`/api/gifts?all=true`).then(r => r.json()).then(data => {
-      const found = data.find(g => g.id === params.id);
-      setGift(found);
-      setLoading(false);
-    });
-  }, [params.id]);
-  
-  const handlePix = async () => {
-    if (!name || !email) { alert("Preencha nome e email"); return; }
-    await fetch("/api/claim-pix", {
+    fetch(`/api/presentes?id=${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setDados)
+      .catch(() => setDados(null));
+  }, [id]);
+
+  const presentear = async (metodo) => {
+    if (!nome.trim()) return setErro("Diga seu nome para os noivos saberem quem mandou o carinho.");
+    setErro("");
+    setEnviando(metodo);
+    const r = await fetch("/api/presentear", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ giftId: gift.id, name, email })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ giftId: dados.presente.id, nome, email, mensagem, metodo }),
     });
-    setStep(3);
+    const resp = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      setEnviando(null);
+      return setErro(resp.error || "Algo deu errado. Tente de novo, por favor.");
+    }
+    if (metodo === "cartao") {
+      window.location.href = resp.url;
+      return;
+    }
+    setEnviando(null);
+    setPix(resp);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
-  
-  const handleCard = async () => {
-    if (!name || !email) { alert("Preencha nome e email"); return; }
-    const res = await fetch("/api/mercadopago", {
+
+  const jaPaguei = async () => {
+    setEnviando("informar");
+    await fetch("/api/presentear/informar", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ giftId: gift.id, name, email })
-    });
-    const data = await res.json();
-    window.location.href = data.init_point;
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ codigo: pix.codigo }),
+    }).catch(() => {});
+    router.push("/pagamento/sucesso?metodo=pix");
   };
-  
-  if (loading) return <Layout><div className="min-h-screen bg-blush flex items-center justify-center"><p className="font-serif text-xl text-wine italic">Carregando...</p></div></Layout>;
-  
-  if (!gift) return <Layout><div className="min-h-screen bg-blush flex items-center justify-center px-6"><div className="text-center"><h2 className="font-serif text-3xl text-deep mb-4">Presente não encontrado</h2><a href="/presentes" className="inline-block px-8 py-3 bg-wine text-blush font-sans text-xs tracking-[0.25em]">VOLTAR</a></div></div></Layout>;
-  
-  if (gift.reserved) return <Layout><div className="min-h-screen bg-blush flex items-center justify-center px-6"><div className="text-center max-w-md"><h2 className="font-serif text-3xl text-deep mb-4">Ops!</h2><p className="font-serif text-lg text-wine mb-6">Este presente já foi escolhido por outra pessoa.</p><a href="/presentes" className="inline-block px-8 py-3 bg-wine text-blush font-sans text-xs tracking-[0.25em]">VER OUTROS PRESENTES</a></div></div></Layout>;
-  
+
+  if (dados === undefined) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-blush flex items-center justify-center">
+          <p className="font-serif text-xl text-wine italic">Carregando...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!dados) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-blush flex items-center justify-center px-6">
+          <div className="text-center">
+            <h2 className="font-serif text-3xl text-deep mb-6">Presente não encontrado</h2>
+            <Link href="/presentes" className="inline-block px-8 py-3 bg-wine text-blush font-sans text-xs tracking-[0.25em]">
+              VER A LISTA
+            </Link>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const { presente, cartao } = dados;
+
   return (
     <Layout>
-      <div className="min-h-screen bg-blush px-6 py-16 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white p-8 border border-dust shadow-lg">
-          <button onClick={() => router.back()} className="text-wine hover:text-deep mb-6">← Voltar</button>
-          
-          {step === 1 && (
-            <>
-              <div className="text-center mb-6">
-                <p className="text-xs tracking-[0.4em] text-fuchsia font-sans font-medium mb-2">VOCÊ ESCOLHEU</p>
-                <h3 className="font-serif text-2xl text-deep mb-2">{gift.name}</h3>
-                <p className="font-sans text-xl text-fuchsia font-medium">R$ {Number(gift.price).toLocaleString("pt-BR", {minimumFractionDigits: 2})}</p>
-              </div>
-              
-              <div className="space-y-4 mb-6">
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome completo" className="w-full py-3 px-5 bg-white border border-dust focus:outline-none focus:border-fuchsia font-serif text-lg text-deep"/>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" className="w-full py-3 px-5 bg-white border border-dust focus:outline-none focus:border-fuchsia font-serif text-lg text-deep"/>
-              </div>
-              
-              <button onClick={() => setStep(2)} className="w-full py-3 bg-wine text-blush font-sans text-xs tracking-[0.3em] hover:bg-fuchsia transition-colors">CONTINUAR</button>
-            </>
-          )}
-          
-          {step === 2 && (
-            <>
-              <p className="font-serif italic text-wine text-center mb-2 text-lg">Como você prefere pagar?</p>
-              
-              <div className="bg-blush/50 p-4 rounded mb-4 border border-dust">
-                <p className="font-serif italic text-sm text-wine text-center leading-relaxed">
-                  💡 <strong>Dica:</strong> Pelo Pix, o valor vai direitinho pros noivos. 
-                  Pelo cartão, tem uma taxinha do Mercado Pago (mas a gente fica feliz do mesmo jeito!) 😊
+      <div className="min-h-screen bg-blush px-6 pt-20 pb-16 md:py-16 flex justify-center">
+        <div className="w-full max-w-4xl">
+          <Link href="/presentes" className="inline-block mb-6 font-sans text-xs tracking-[0.2em] text-wine hover:text-deep">
+            ← VOLTAR PARA A LISTA
+          </Link>
+
+          <div className="grid lg:grid-cols-[1fr_1.1fr] bg-white border border-dust shadow-lg">
+            <div className="lg:border-r border-dust">
+              <IlustracaoPresente presente={presente} grande />
+              <div className="p-6 md:p-8">
+                <p className="text-[0.65rem] tracking-[0.3em] text-fuchsia font-sans mb-2">
+                  {(presente.categoria || "").toUpperCase()}
                 </p>
+                <h1 className="font-serif text-3xl text-deep leading-tight mb-3">{presente.nome}</h1>
+                {presente.descricao && <p className="font-serif italic text-lg text-wine mb-4">{presente.descricao}</p>}
+                <p className="font-sans text-2xl text-fuchsia font-medium">{reais(presente.preco)}</p>
               </div>
-              
-              <div className="space-y-3">
-                <button onClick={handlePix} className="w-full py-4 bg-wine text-blush font-sans text-sm tracking-[0.15em] hover:bg-fuchsia transition-colors flex items-center justify-between px-5">
-                  <span>PIX</span>
-                  <span className="text-xs opacity-75">100% pros noivos</span>
-                </button>
-                <button onClick={handleCard} className="w-full py-4 border border-fuchsia text-fuchsia font-sans text-sm tracking-[0.15em] hover:bg-fuchsia hover:text-blush transition-colors">
-                  CARTÃO DE CRÉDITO/DÉBITO
-                </button>
-              </div>
-            </>
-          )}
-          
-          {step === 3 && (
-            <div className="text-center">
-              <p className="font-serif text-lg text-wine mb-4">Use a chave PIX abaixo:</p>
-              <div className="p-5 border-2 border-dashed border-fuchsia bg-blush mb-4">
-                <p className="text-xs tracking-[0.3em] text-fuchsia font-sans font-medium mb-2">CHAVE PIX · BANCO INTER</p>
-                <p className="break-all font-sans text-lg text-deep font-medium">{process.env.NEXT_PUBLIC_PIX_KEY || "danielpazevedo98@gmail.com"}</p>
-                <button onClick={() => { navigator.clipboard?.writeText(process.env.NEXT_PUBLIC_PIX_KEY || "danielpazevedo98@gmail.com"); alert("Chave copiada!"); }} className="mt-3 text-xs tracking-[0.3em] text-fuchsia hover:underline font-sans">COPIAR CHAVE</button>
-              </div>
-              <p className="font-serif italic text-wine text-sm mb-2">Valor: <strong>R$ {Number(gift.price).toLocaleString("pt-BR", {minimumFractionDigits: 2})}</strong></p>
-              <p className="font-serif italic text-wine text-sm mb-6">Já fez a transferência?</p>
-              <a href="/pagamento/sucesso" className="inline-block px-8 py-3 bg-wine text-blush font-sans text-xs tracking-[0.25em] hover:bg-fuchsia transition-colors">JÁ FIZ O PIX</a>
             </div>
-          )}
+
+            <div className="p-6 md:p-8">
+              {!pix ? (
+                <>
+                  <p className="text-xs tracking-[0.4em] text-fuchsia font-sans font-medium mb-6">QUEM ESTÁ PRESENTEANDO?</p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={rotulo} htmlFor="nome">SEU NOME</label>
+                      <input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} className={campo} autoComplete="name" />
+                    </div>
+                    <div>
+                      <label className={rotulo} htmlFor="email">E-MAIL (OPCIONAL)</label>
+                      <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={campo} autoComplete="email" />
+                    </div>
+                    <div>
+                      <label className={rotulo} htmlFor="msg">RECADO PARA OS NOIVOS (OPCIONAL)</label>
+                      <textarea id="msg" rows={4} value={mensagem} onChange={(e) => setMensagem(e.target.value)} maxLength={1000} className={`${campo} resize-none`} placeholder="Escreva algo bonito (ou engraçado)..." />
+                    </div>
+                  </div>
+
+                  {erro && <p className="mt-4 font-sans text-sm text-fuchsia">{erro}</p>}
+
+                  <div className="mt-6 space-y-3">
+                    <button
+                      onClick={() => presentear("pix")}
+                      disabled={!!enviando}
+                      className="w-full py-4 px-5 bg-wine text-blush font-sans text-sm tracking-[0.15em] hover:bg-fuchsia transition-colors flex items-center justify-between disabled:opacity-60"
+                    >
+                      <span>{enviando === "pix" ? "GERANDO PIX..." : "PAGAR COM PIX"}</span>
+                      <span className="text-xs opacity-80">sem taxa</span>
+                    </button>
+                    {cartao && (
+                      <button
+                        onClick={() => presentear("cartao")}
+                        disabled={!!enviando}
+                        className="w-full py-4 px-5 border border-fuchsia text-fuchsia font-sans text-sm tracking-[0.15em] hover:bg-fuchsia hover:text-blush transition-colors flex items-center justify-between disabled:opacity-60"
+                      >
+                        <span>{enviando === "cartao" ? "ABRINDO..." : "CARTÃO DE CRÉDITO"}</span>
+                        <span className="text-xs opacity-80">via Mercado Pago</span>
+                      </button>
+                    )}
+                  </div>
+                  <p className="mt-4 font-serif italic text-sm text-wine text-center leading-relaxed">
+                    Pelo Pix o valor vai inteirinho para os noivos.
+                    {cartao && " No cartão, o Mercado Pago cobra uma taxinha, mas a gente fica feliz do mesmo jeito!"}
+                  </p>
+                </>
+              ) : (
+                <div className="text-center">
+                  <p className="text-xs tracking-[0.4em] text-fuchsia font-sans font-medium mb-2">QUASE LÁ!</p>
+                  <p className="font-serif text-lg text-wine mb-5">
+                    Abra o app do seu banco e pague com o QR Code ou com o código copia e cola.
+                  </p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={pix.pix.qr} alt="QR Code do Pix" className="w-56 h-56 mx-auto border border-dust p-2" />
+                  <p className="mt-4 font-sans text-2xl text-fuchsia font-medium">{reais(pix.valor)}</p>
+
+                  <div className="mt-5 text-left">
+                    <p className={rotulo}>PIX COPIA E COLA</p>
+                    <p className="break-all font-mono text-xs text-deep bg-blush/60 border border-dust p-3 mb-3 max-h-24 overflow-y-auto">
+                      {pix.pix.copiaECola}
+                    </p>
+                    <Copiar texto={pix.pix.copiaECola}>COPIAR CÓDIGO PIX</Copiar>
+                  </div>
+
+                  <p className="mt-5 font-serif italic text-sm text-wine">
+                    Se preferir, use a chave <strong className="not-italic font-sans">{pix.pix.chave}</strong>
+                    {pix.pix.banco && <> ({pix.pix.banco})</>} e digite o valor.
+                  </p>
+
+                  <button
+                    onClick={jaPaguei}
+                    disabled={enviando === "informar"}
+                    className="w-full mt-6 py-4 bg-wine text-blush font-sans text-xs tracking-[0.3em] hover:bg-fuchsia transition-colors disabled:opacity-60"
+                  >
+                    JÁ FIZ O PIX
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </Layout>

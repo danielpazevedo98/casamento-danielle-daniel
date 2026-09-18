@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
+// Sem isto o Next gerava a resposta uma vez no build e o cron nunca
+// chegava a consultar o banco (o Supabase gratis pausa sem uso).
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const supabase = supabaseAdmin();

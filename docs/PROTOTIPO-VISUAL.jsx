@@ -21,7 +21,7 @@ const WEDDING = {
   pixKey: "danielpazevedo98@gmail.com",
 };
 
-const ADMIN_PASSWORD = "danieldanielle2026";
+const ADMIN_PASSWORD = "(removida)"; // o admin real usa o login do Supabase
 
 const DEFAULT_GIFTS = [
   { id: "g1", name: "Jogo de Panelas Tramontina", price: 890, icon: "panela" },
@@ -1058,7 +1058,7 @@ const AdminLogin = ({ onLogin, onCancel }) => {
           className="w-full mt-4 py-2 px-3 border bg-white focus:outline-none text-center"
           style={{ borderColor: err ? "#a85c5c" : "#be185d", fontFamily: "'Cormorant Garamond', serif", fontSize: "1.1rem" }} />
         {err && <p className="mt-2 text-sm" style={{ color: "#a85c5c", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}>senha incorreta</p>}
-        <p className="mt-2 text-xs" style={{ color: "#8a4a48", fontFamily: "'Outfit', sans-serif", fontStyle: "italic" }}>(demo: danieldanielle2026)</p>
+        <p className="mt-2 text-xs" style={{ color: "#8a4a48", fontFamily: "'Outfit', sans-serif", fontStyle: "italic" }}>(demo)</p>
         <div className="flex gap-2 mt-6">
           <button onClick={onCancel} className="flex-1 py-2"
             style={{ border: "1px solid #8a4a48", color: "#8a4a48", fontFamily: "'Outfit', sans-serif", fontSize: "0.75rem", letterSpacing: "0.25em" }}>CANCELAR</button>
