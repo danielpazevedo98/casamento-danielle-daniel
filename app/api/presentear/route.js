@@ -1,22 +1,15 @@
-import crypto from "crypto";
 import QRCode from "qrcode";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { pixCopiaECola, recebedorPix } from "@/lib/pix";
 import { cartaoAtivo, criarPreferencia } from "@/lib/mercadopago";
+import { REPETIDO, RESERVA_MINUTOS, liberarReservasVencidas, novoCodigo } from "@/lib/reservas";
 
 export const dynamic = "force-dynamic";
 
-// Codigo curto que vai no txid do Pix, para achar o presente no extrato.
-const novoCodigo = () => {
-  const letras = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bytes = crypto.randomBytes(8);
-  return "DD" + Array.from(bytes, (b) => letras[b % letras.length]).join("");
-};
-
 const texto = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
-// O convidado escolheu um presente: registra como pendente e devolve o Pix
+// O convidado escolheu um presente: reserva (ele some do site) e devolve o Pix
 // (QR Code + copia e cola) ou o link de pagamento do Mercado Pago.
 export async function POST(request) {
   const corpo = await request.json().catch(() => ({}));
@@ -36,6 +29,7 @@ export async function POST(request) {
     return NextResponse.json({ error: "Pagamento por cartão ainda não está disponível" }, { status: 400 });
 
   const db = supabaseAdmin();
+  await liberarReservasVencidas(db);
   const { data: presente } = await db
     .from("gifts").select("id, nome, preco").eq("id", corpo.giftId).eq("publicado", true).maybeSingle();
   if (!presente) return NextResponse.json({ error: "Presente não encontrado" }, { status: 404 });
@@ -54,6 +48,13 @@ export async function POST(request) {
     })
     .select()
     .single();
+  // O indice unico do banco recusa se alguem escolheu este presente antes.
+  if (error?.code === REPETIDO) {
+    return NextResponse.json(
+      { error: "Poxa, alguém acabou de escolher esse presente! Que tal outro?", escolhido: true },
+      { status: 409 }
+    );
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   if (metodo === "cartao") {
@@ -85,6 +86,7 @@ export async function POST(request) {
   return NextResponse.json({
     codigo: claim.codigo,
     valor: claim.valor,
+    reservaMinutos: RESERVA_MINUTOS,
     pix: { copiaECola, qr, chave: recebedor.chave, banco: recebedor.banco },
   });
 }

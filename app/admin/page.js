@@ -1,18 +1,15 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { supabaseNavegador } from "@/lib/supabase";
-import { AvisoProvider, cls, useAviso } from "./ui";
+import { AvisoProvider, api, cls, useAviso } from "./ui";
 import AbaPainel from "./AbaPainel";
 import AbaConvidados from "./AbaConvidados";
 import AbaPresentes from "./AbaPresentes";
 import AbaPagamentos from "./AbaPagamentos";
 
-// A senha nunca fica no codigo: quem confere e o Supabase Auth. Depois do
-// login, o banco so libera os dados se o e-mail estiver na tabela admins.
+// A senha nunca fica neste arquivo: quem confere e o servidor, comparando com a
+// variavel ADMIN_PASSWORD da Vercel. Depois disso a sessao fica num cookie.
 
-function Login() {
-  const db = supabaseNavegador();
-  const [email, setEmail] = useState("");
+function Login({ onEntrar, configurada }) {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [entrando, setEntrando] = useState(false);
@@ -21,9 +18,11 @@ function Login() {
     e.preventDefault();
     setEntrando(true);
     setErro("");
-    const { error } = await db.auth.signInWithPassword({ email: email.trim(), password: senha });
+    const r = await api("sessao", { method: "POST", corpo: { senha } });
     setEntrando(false);
-    if (error) setErro(/invalid/i.test(error.message) ? "E-mail ou senha incorretos." : error.message);
+    if (r.error) return setErro(r.error.message);
+    setSenha("");
+    onEntrar();
   };
 
   return (
@@ -31,8 +30,21 @@ function Login() {
       <form onSubmit={entrar} className="max-w-sm w-full bg-white p-8 border border-dust shadow-lg text-center">
         <h1 className="font-serif text-3xl text-deep">Área restrita</h1>
         <p className="font-sans text-xs text-wine mt-1 mb-6">Casamento · Danielle &amp; Daniel</p>
-        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" autoComplete="username" className={`${cls.campo} mb-3`} />
-        <input type="password" required value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="Senha" autoComplete="current-password" className={`${cls.campo} mb-4`} />
+        {!configurada && (
+          <p className="font-sans text-xs text-fuchsia mb-4">
+            A senha ainda não foi configurada na Vercel (variável ADMIN_PASSWORD).
+          </p>
+        )}
+        <input
+          type="password"
+          required
+          value={senha}
+          onChange={(e) => setSenha(e.target.value)}
+          placeholder="Senha"
+          autoComplete="current-password"
+          autoFocus
+          className={`${cls.campo} mb-4`}
+        />
         <button type="submit" disabled={entrando} className={`${cls.btn} w-full py-3`}>
           {entrando ? "Entrando..." : "Entrar"}
         </button>
@@ -49,27 +61,25 @@ const ABAS = [
   ["pagamentos", "Pagamentos"],
 ];
 
-function Painel({ email }) {
-  const db = supabaseNavegador();
+function Painel({ onSair }) {
   const aviso = useAviso();
   const [aba, setAba] = useState("painel");
   const [dados, setDados] = useState(null);
 
   const recarregar = useCallback(async () => {
-    const [c, g, p, cl] = await Promise.all([
-      db.from("guests").select("*").order("nome"),
-      db.from("guest_groups").select("*").order("id"),
-      db.from("gifts").select("*").order("preco").order("nome"),
-      db.from("gift_claims").select("*").order("criado_em", { ascending: false }),
-    ]);
-    const erro = c.error || g.error || p.error || cl.error;
-    if (erro) return aviso("Erro ao carregar: " + erro.message);
-    setDados({ convidados: c.data, grupos: g.data, presentes: p.data, claims: cl.data });
-  }, [db, aviso]);
+    const r = await api("dados");
+    if (r.error) return aviso("Erro ao carregar: " + r.error.message);
+    setDados(r.data);
+  }, [aviso]);
 
   useEffect(() => {
     recarregar();
   }, [recarregar]);
+
+  const sair = async () => {
+    await api("sessao", { method: "DELETE" });
+    onSair();
+  };
 
   const props = { dados, recarregar };
 
@@ -78,9 +88,9 @@ function Painel({ email }) {
       <div className="max-w-6xl mx-auto px-4 pb-20">
         <header className="flex flex-wrap items-center justify-between gap-3 py-5">
           <h1 className="font-serif text-3xl text-deep">Administração</h1>
-          <div className="flex items-center gap-3">
-            <span className="font-sans text-xs text-wine">{email}</span>
-            <button className={cls.btnSec} onClick={() => db.auth.signOut()}>Sair</button>
+          <div className="flex items-center gap-2">
+            <button className={cls.btnSec} onClick={recarregar}>Atualizar</button>
+            <button className={cls.btnSec} onClick={sair}>Sair</button>
           </div>
         </header>
 
@@ -115,38 +125,24 @@ function Painel({ email }) {
 }
 
 function Portaria() {
-  const db = supabaseNavegador();
-  const [sessao, setSessao] = useState(undefined);
-  const [autorizado, setAutorizado] = useState(null);
-  const usuario = sessao?.user?.id;
+  const [sessao, setSessao] = useState(null);
+
+  const verificar = useCallback(async () => {
+    const r = await api("sessao");
+    setSessao(r.data || { logado: false, configurada: true });
+  }, []);
 
   useEffect(() => {
-    db.auth.getSession().then(({ data }) => setSessao(data.session));
-    const { data } = db.auth.onAuthStateChange((_evento, s) => setSessao(s));
-    return () => data.subscription.unsubscribe();
-  }, [db]);
+    verificar();
+    // Alguma rota respondeu 401 (sessao venceu): volta para o login.
+    const saiu = () => setSessao((s) => ({ ...s, logado: false }));
+    window.addEventListener("admin-saiu", saiu);
+    return () => window.removeEventListener("admin-saiu", saiu);
+  }, [verificar]);
 
-  useEffect(() => {
-    if (!usuario) return setAutorizado(null);
-    db.from("admins").select("email").then(({ data }) => setAutorizado(Boolean(data?.length)));
-  }, [db, usuario]);
-
-  if (sessao === undefined || (sessao && autorizado === null)) {
-    return <div className="min-h-screen bg-blush" />;
-  }
-  if (!sessao) return <Login />;
-  if (!autorizado) {
-    return (
-      <div className="min-h-screen bg-blush flex items-center justify-center px-6">
-        <div className="max-w-sm w-full bg-white p-8 border border-dust text-center">
-          <p className="font-serif text-xl text-deep mb-2">Sem acesso</p>
-          <p className="font-sans text-sm text-wine mb-6">O e-mail {sessao.user.email} não está liberado para o admin.</p>
-          <button className={cls.btnSec} onClick={() => db.auth.signOut()}>Sair</button>
-        </div>
-      </div>
-    );
-  }
-  return <Painel email={sessao.user.email} />;
+  if (!sessao) return <div className="min-h-screen bg-blush" />;
+  if (!sessao.logado) return <Login configurada={sessao.configurada} onEntrar={verificar} />;
+  return <Painel onSair={verificar} />;
 }
 
 export default function Admin() {

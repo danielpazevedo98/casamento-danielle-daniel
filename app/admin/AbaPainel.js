@@ -12,7 +12,11 @@ export default function AbaPainel({ dados, irPara }) {
   const recebidos = dados.claims.filter((c) => c.status === "confirmado");
   const pixPendentes = dados.claims.filter((c) => c.status === "pendente" && c.metodo === "pix");
   const avisaram = pixPendentes.filter((c) => c.informado_em);
-  const presentesRecentes = dados.claims.filter((c) => c.status !== "cancelado").slice(0, 12);
+  // Reservados ou recebidos: sao os que seguram o presente fora do site.
+  const ativos = dados.claims.filter((c) => c.status === "pendente" || c.status === "confirmado");
+  const presentesRecentes = ativos.slice(0, 12);
+  const ocupados = new Set(ativos.map((c) => c.gift_id));
+  const livresNoSite = dados.presentes.filter((p) => p.publicado && !ocupados.has(p.id)).length;
 
   const respostas = dados.convidados
     .filter((c) => c.presenca)
@@ -33,7 +37,7 @@ export default function AbaPainel({ dados, irPara }) {
         <Cartao n={recebidos.length} r="PRESENTES RECEBIDOS" cor="text-green-800" />
         <Cartao n={reais(soma(recebidos))} r="VALOR RECEBIDO" cor="text-green-800" />
         <Cartao n={pixPendentes.length} r={`PIX A CONFERIR · ${avisaram.length} AVISARAM QUE PAGARAM`} />
-        <Cartao n={reais(soma(pixPendentes))} r="VALOR DOS PIX A CONFERIR" />
+        <Cartao n={livresNoSite} r="PRESENTES LIVRES NO SITE" />
       </div>
 
       <Secao>ÚLTIMOS PRESENTES</Secao>

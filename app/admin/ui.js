@@ -15,6 +15,23 @@ export const cls = {
   sub: "text-[11.5px] text-wine/70",
 };
 
+// Chama as rotas /api/admin (o cookie da sessao vai junto). Devolve
+// { data } ou { error: { message } }, como o cliente do Supabase.
+export async function api(caminho, { method = "GET", corpo } = {}) {
+  try {
+    const r = await fetch("/api/admin/" + caminho, {
+      method,
+      headers: corpo && !(corpo instanceof FormData) ? { "Content-Type": "application/json" } : undefined,
+      body: corpo instanceof FormData ? corpo : corpo ? JSON.stringify(corpo) : undefined,
+    });
+    const dados = await r.json().catch(() => ({}));
+    if (r.status === 401 && caminho !== "sessao") window.dispatchEvent(new Event("admin-saiu"));
+    return r.ok ? { data: dados } : { error: { message: dados.error || "Algo deu errado", status: r.status } };
+  } catch {
+    return { error: { message: "Sem conexão. Tente de novo." } };
+  }
+}
+
 // Para usar dentro de onSalvar: mostra o aviso e mantem o modal aberto.
 export const falhou = (aviso, texto) => {
   aviso(texto);

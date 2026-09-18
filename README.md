@@ -29,26 +29,32 @@ Settings → Environment Variables). **Nunca coloque os valores neste repositór
 | Variável | Para que serve |
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Endereço do Supabase |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave pública (usada só no login do admin) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Chave do servidor. Secreta! |
 | `NEXT_PUBLIC_SITE_URL` | Endereço do site (ex.: `https://casamento-danielle-daniel.vercel.app`) |
 | `PIX_CHAVE`, `PIX_NOME`, `PIX_CIDADE`, `PIX_BANCO` | Dados do QR Code do Pix (opcionais: sem eles, usa `NEXT_PUBLIC_PIX_KEY`, `NEXT_PUBLIC_PIX_BANK`, "Daniel Azevedo" e "Rio de Janeiro") |
 | `MERCADOPAGO_ACCESS_TOKEN` | Token de produção do Mercado Pago. Vazio = botão de cartão escondido |
 | `MERCADOPAGO_WEBHOOK_SECRET` | Assinatura secreta do webhook do Mercado Pago |
+| `ADMIN_PASSWORD` | Senha do `/admin` |
 
 ## Admin
 
-1. No Supabase: Authentication → Users → Add user (com "Auto Confirm User").
-2. O e-mail precisa estar na tabela `admins` (SQL Editor:
-   `insert into admins (email) values ('email@exemplo.com');`).
-3. Entre em `/admin` com esse e-mail e senha.
+Entre em `/admin` com a senha da variável `ADMIN_PASSWORD` (Vercel → Settings → Environment Variables).
+Trocar a senha lá e fazer Redeploy desconecta quem estava logado.
+
+## Presentes
+
+- Cada presente só pode ser dado uma vez: quem escolhe o tira do site na hora.
+- Pix gerado e não avisado em 1 hora (`RESERVA_MINUTOS` em `lib/reservas.js`) vence, e o presente volta.
+- Quem clicou em "Já fiz o Pix" fica reservado até vocês confirmarem ou cancelarem em Pagamentos.
+- No admin dá para pôr/tirar do site um por um ou todos os filtrados de uma vez.
+- Preço sempre múltiplo de R$ 10 e nome sem repetir (o banco confere).
 
 ## Como os dados ficam protegidos
 
 - Todas as tabelas têm RLS ligado e **nenhuma** política para visitantes: o site público só
   acessa o banco pelas rotas em `app/api`, que rodam no servidor.
-- No `/admin`, o navegador usa a chave pública + o login; o banco só libera os dados para
-  e-mails da tabela `admins` (função `privado.is_admin()`).
+- O `/admin` também passa pelo servidor: as rotas `app/api/admin` só respondem com o cookie
+  de sessão criado depois da senha certa.
 
 ## Mercado Pago (cartão)
 

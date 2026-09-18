@@ -1,20 +1,26 @@
 "use client";
 import { useMemo, useState } from "react";
-import { supabaseNavegador } from "@/lib/supabase";
 import { dataHora, normalizar, reais } from "@/lib/formato";
-import { Barra, Cartao, Contador, ModalAcao, Rotulo, Tabela, Tag, cls, falhou, useAviso } from "./ui";
+import { Barra, Cartao, Contador, ModalAcao, Rotulo, Tabela, Tag, api, cls, falhou, useAviso } from "./ui";
 
 const METODOS = { pix: "Pix", cartao: "Cartão", outro: "Outro" };
 
 // Presente dado fora do site (dinheiro no envelope, Pix direto na chave...).
 function RegistrarPorFora({ dados, onFechar, recarregar }) {
-  const db = supabaseNavegador();
   const aviso = useAviso();
   const [f, setF] = useState({ nome: "", giftId: "", valor: "", metodo: "pix", mensagem: "" });
   const muda = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
+  // So os presentes que ninguem escolheu ainda.
+  const livres = useMemo(() => {
+    const ocupados = new Set(
+      dados.claims.filter((c) => c.status === "pendente" || c.status === "confirmado").map((c) => c.gift_id)
+    );
+    return dados.presentes.filter((p) => !ocupados.has(p.id));
+  }, [dados]);
+
   const escolherPresente = (e) => {
-    const p = dados.presentes.find((x) => String(x.id) === e.target.value);
+    const p = livres.find((x) => String(x.id) === e.target.value);
     setF({ ...f, giftId: e.target.value, valor: p ? String(p.preco) : f.valor });
   };
 
@@ -22,20 +28,11 @@ function RegistrarPorFora({ dados, onFechar, recarregar }) {
     const valor = Number(String(f.valor).replace(",", "."));
     if (!f.nome.trim()) return falhou(aviso, "Diga quem deu o presente");
     if (!(valor > 0)) return falhou(aviso, "Coloque o valor recebido");
-    const presente = dados.presentes.find((x) => String(x.id) === f.giftId);
-    const agora = new Date().toISOString();
-    const r = await db.from("gift_claims").insert({
-      codigo: "DD" + crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase(),
-      gift_id: presente?.id ?? null,
-      presente_nome: presente?.nome || "Presente em dinheiro",
-      nome: f.nome.trim(),
-      mensagem: f.mensagem.trim() || null,
-      valor,
-      metodo: f.metodo,
-      status: "confirmado",
-      confirmado_em: agora,
+    const r = await api("pagamentos", {
+      method: "POST",
+      corpo: { nome: f.nome, gift_id: f.giftId ? Number(f.giftId) : null, valor, metodo: f.metodo, mensagem: f.mensagem },
     });
-    if (r.error) return falhou(aviso, "Erro: " + r.error.message);
+    if (r.error) return falhou(aviso, r.error.message);
     aviso("Presente registrado");
     await recarregar();
   };
@@ -44,10 +41,10 @@ function RegistrarPorFora({ dados, onFechar, recarregar }) {
     <ModalAcao titulo="Registrar presente recebido" onFechar={onFechar} onSalvar={salvar}>
       <Rotulo htmlFor="r_nome">Quem deu</Rotulo>
       <input id="r_nome" className={cls.campo} value={f.nome} onChange={muda("nome")} autoFocus />
-      <Rotulo htmlFor="r_pres">Presente (opcional)</Rotulo>
+      <Rotulo htmlFor="r_pres">Presente da lista (opcional; ele sai do site)</Rotulo>
       <select id="r_pres" className={cls.campo} value={f.giftId} onChange={escolherPresente}>
         <option value="">Presente em dinheiro (sem item da lista)</option>
-        {dados.presentes.map((p) => (
+        {livres.map((p) => (
           <option key={p.id} value={p.id}>{p.nome} · {reais(p.preco)}</option>
         ))}
       </select>
@@ -69,8 +66,15 @@ function RegistrarPorFora({ dados, onFechar, recarregar }) {
   );
 }
 
+function Situacao({ c }) {
+  if (c.status === "confirmado") return <Tag tipo="confirmado">Recebido</Tag>;
+  if (c.status === "cancelado") return <Tag tipo="cancelado">Cancelado</Tag>;
+  if (c.status === "expirado") return <Tag>Não pagou (reserva venceu)</Tag>;
+  if (c.informado_em) return <Tag tipo="destaque">Avisou que pagou</Tag>;
+  return <Tag>{c.metodo === "cartao" ? "Aguardando cartão" : "Gerou o Pix"}</Tag>;
+}
+
 export default function AbaPagamentos({ dados, recarregar }) {
-  const db = supabaseNavegador();
   const aviso = useAviso();
   const [busca, setBusca] = useState("");
   const [status, setStatus] = useState("pendente");
@@ -90,12 +94,12 @@ export default function AbaPagamentos({ dados, recarregar }) {
   const total = (s) => dados.claims.filter((c) => c.status === s).reduce((t, c) => t + Number(c.valor), 0);
 
   const mudarStatus = async (c, novo) => {
-    const r = await db
-      .from("gift_claims")
-      .update({ status: novo, confirmado_em: novo === "confirmado" ? new Date().toISOString() : null })
-      .eq("id", c.id);
+    const r = await api("pagamentos", { method: "PATCH", corpo: { id: c.id, status: novo } });
     if (r.error) return falhou(aviso, "Erro: " + r.error.message);
-    aviso(novo === "confirmado" ? `Presente de ${c.nome} confirmado 💝` : novo === "cancelado" ? "Marcado como cancelado" : "Voltou para pendente");
+    aviso(
+      r.data.aviso ||
+        (novo === "confirmado" ? `Presente de ${c.nome} confirmado 💝` : novo === "cancelado" ? "Cancelado: o presente voltou para a lista" : "Voltou para a conferir")
+    );
     await recarregar();
   };
 
@@ -114,6 +118,7 @@ export default function AbaPagamentos({ dados, recarregar }) {
         <select className={cls.filtro} value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Situação">
           <option value="pendente">A conferir</option>
           <option value="confirmado">Recebidos</option>
+          <option value="expirado">Não pagos (reserva venceu)</option>
           <option value="cancelado">Cancelados</option>
           <option value="">Todos</option>
         </select>
@@ -125,8 +130,10 @@ export default function AbaPagamentos({ dados, recarregar }) {
         <Contador>{filtrados.length} de {dados.claims.length}</Contador>
       </Barra>
       <p className={`${cls.sub} mb-3`}>
-        Pix fica &ldquo;a conferir&rdquo; até vocês verem o dinheiro na conta: procure pelo valor ou pelo código (ele aparece
-        no extrato em alguns bancos). Cartão é confirmado sozinho pelo Mercado Pago.
+        Quem escolhe um presente o tira do site na hora. No Pix, a reserva fica &ldquo;a conferir&rdquo; até vocês verem o
+        dinheiro na conta (procure pelo valor ou pelo código, que aparece no extrato em alguns bancos). Se a pessoa gera o
+        Pix e não avisa que pagou em 1 hora, a reserva vence e o presente volta para a lista. Cartão é confirmado sozinho
+        pelo Mercado Pago.
       </p>
 
       <Tabela
@@ -155,30 +162,20 @@ export default function AbaPagamentos({ dados, recarregar }) {
                 {reais(c.valor)} · {METODOS[c.metodo]} · <span className="font-mono">{c.codigo}</span>
               </div>
             </td>
-            <td className={cls.td}>
-              {c.status === "confirmado" ? (
-                <Tag tipo="confirmado">Recebido</Tag>
-              ) : c.status === "cancelado" ? (
-                <Tag tipo="cancelado">Cancelado</Tag>
-              ) : c.informado_em ? (
-                <Tag tipo="destaque">Avisou que pagou</Tag>
-              ) : (
-                <Tag>{c.metodo === "cartao" ? "Aguardando cartão" : "Gerou o Pix"}</Tag>
-              )}
-            </td>
+            <td className={cls.td}><Situacao c={c} /></td>
             <td className={`${cls.td} ${cls.sub} hidden md:table-cell whitespace-nowrap`}>
               {dataHora(c.criado_em)}
               {c.confirmado_em && <div>recebido {dataHora(c.confirmado_em)}</div>}
             </td>
             <td className={cls.td}>
               <div className="flex flex-wrap justify-end gap-1.5">
-                {c.status === "pendente" ? (
-                  <>
-                    <button className={cls.mini} onClick={() => mudarStatus(c, "confirmado")}>Confirmar recebimento</button>
-                    <button className={cls.miniPerigo} onClick={() => setModal({ tipo: "cancelar", claim: c })}>Cancelar</button>
-                  </>
-                ) : (
+                {c.status === "confirmado" ? (
                   <button className={cls.mini} onClick={() => mudarStatus(c, "pendente")}>Voltar para a conferir</button>
+                ) : (
+                  <button className={cls.mini} onClick={() => mudarStatus(c, "confirmado")}>Confirmar recebimento</button>
+                )}
+                {c.status === "pendente" && (
+                  <button className={cls.miniPerigo} onClick={() => setModal({ tipo: "cancelar", claim: c })}>Cancelar</button>
                 )}
               </div>
             </td>
@@ -189,8 +186,8 @@ export default function AbaPagamentos({ dados, recarregar }) {
       {modal?.tipo === "registrar" && <RegistrarPorFora dados={dados} onFechar={fechar} recarregar={recarregar} />}
       {modal?.tipo === "cancelar" && (
         <ModalAcao titulo="Cancelar presente" textoSalvar="Cancelar presente" onFechar={fechar} onSalvar={() => mudarStatus(modal.claim, "cancelado")}>
-          Marca o presente de <b>{modal.claim.nome}</b> ({reais(modal.claim.valor)}) como cancelado. Use quando o
-          dinheiro não chegou ou a pessoa gerou o Pix e desistiu. Dá para voltar atrás depois.
+          Marca o presente de <b>{modal.claim.nome}</b> ({reais(modal.claim.valor)}) como cancelado, e{" "}
+          <b>{modal.claim.presente_nome}</b> volta para a lista do site. Use quando o dinheiro não chegou.
         </ModalAcao>
       )}
     </section>

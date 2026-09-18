@@ -1,10 +1,9 @@
 "use client";
 import { useMemo, useState } from "react";
-import { supabaseNavegador } from "@/lib/supabase";
-import { CATEGORIAS } from "@/lib/evento";
+import { CATEGORIAS, FAIXAS, naFaixa } from "@/lib/evento";
 import { normalizar, reais } from "@/lib/formato";
 import IlustracaoPresente from "@/components/IlustracaoPresente";
-import { Aviso, Barra, Contador, ModalAcao, Rotulo, Tabela, Tag, cls, falhou, useAviso } from "./ui";
+import { Aviso, Barra, Cartao, Contador, ModalAcao, Rotulo, Tabela, Tag, api, cls, falhou, useAviso } from "./ui";
 
 // Reduz a foto no navegador antes de enviar (lado maior com ~1000px), para a
 // lista carregar rapido no celular dos convidados.
@@ -19,7 +18,6 @@ async function reduzirImagem(arquivo, max = 1000) {
 }
 
 function EditarPresente({ presente, onFechar, recarregar }) {
-  const db = supabaseNavegador();
   const aviso = useAviso();
   const [f, setF] = useState({
     nome: presente?.nome || "",
@@ -39,13 +37,13 @@ function EditarPresente({ presente, onFechar, recarregar }) {
     setEnviandoFoto(true);
     try {
       const blob = await reduzirImagem(arquivo);
-      const ext = blob.type === "image/webp" ? "webp" : "png";
-      const caminho = `${crypto.randomUUID()}.${ext}`;
-      const r = await db.storage.from("presentes").upload(caminho, blob, { contentType: blob.type });
-      if (r.error) throw r.error;
-      setF((atual) => ({ ...atual, imagem_url: db.storage.from("presentes").getPublicUrl(caminho).data.publicUrl }));
+      const form = new FormData();
+      form.append("arquivo", blob, blob.type === "image/webp" ? "imagem.webp" : "imagem.png");
+      const r = await api("upload", { method: "POST", corpo: form });
+      if (r.error) throw new Error(r.error.message);
+      setF((atual) => ({ ...atual, imagem_url: r.data.url }));
     } catch (erro) {
-      aviso("Não consegui enviar a imagem: " + (erro.message || erro));
+      aviso("Não consegui enviar a imagem: " + erro.message);
     }
     setEnviandoFoto(false);
   };
@@ -54,7 +52,7 @@ function EditarPresente({ presente, onFechar, recarregar }) {
     const nome = f.nome.trim();
     const preco = Number(String(f.preco).replace(",", "."));
     if (!nome) return falhou(aviso, "O nome é obrigatório");
-    if (!(preco > 0)) return falhou(aviso, "Coloque um preço maior que zero");
+    if (!(preco > 0) || preco % 10 !== 0) return falhou(aviso, "O preço precisa ser um múltiplo de R$ 10");
     const registro = {
       nome,
       descricao: f.descricao.trim() || null,
@@ -65,9 +63,9 @@ function EditarPresente({ presente, onFechar, recarregar }) {
       publicado: f.publicado,
     };
     const r = presente
-      ? await db.from("gifts").update(registro).eq("id", presente.id)
-      : await db.from("gifts").insert(registro);
-    if (r.error) return falhou(aviso, "Erro: " + r.error.message);
+      ? await api("presentes", { method: "PATCH", corpo: { id: presente.id, ...registro } })
+      : await api("presentes", { method: "POST", corpo: registro });
+    if (r.error) return falhou(aviso, r.error.message);
     aviso(presente ? "Presente atualizado" : "Presente adicionado");
     await recarregar();
   };
@@ -94,7 +92,7 @@ function EditarPresente({ presente, onFechar, recarregar }) {
       <div className="grid grid-cols-[1fr_1fr_5rem] gap-3">
         <div>
           <Rotulo htmlFor="p_preco">Preço (R$)</Rotulo>
-          <input id="p_preco" inputMode="decimal" className={cls.campo} value={f.preco} onChange={muda("preco")} />
+          <input id="p_preco" inputMode="numeric" className={cls.campo} value={f.preco} onChange={muda("preco")} />
         </div>
         <div>
           <Rotulo htmlFor="p_cat">Categoria</Rotulo>
@@ -107,6 +105,7 @@ function EditarPresente({ presente, onFechar, recarregar }) {
           <input id="p_emoji" className={`${cls.campo} text-center`} value={f.emoji} onChange={muda("emoji")} maxLength={8} />
         </div>
       </div>
+      <p className={`${cls.sub} mt-1`}>Preço sempre múltiplo de R$ 10.</p>
       <label className="flex items-center gap-2 mt-4 cursor-pointer">
         <input type="checkbox" className="w-4 h-4 accent-wine" checked={f.publicado} onChange={(e) => setF({ ...f, publicado: e.target.checked })} />
         Mostrar na lista do site
@@ -117,22 +116,18 @@ function EditarPresente({ presente, onFechar, recarregar }) {
 }
 
 export default function AbaPresentes({ dados, recarregar }) {
-  const db = supabaseNavegador();
   const aviso = useAviso();
   const [busca, setBusca] = useState("");
   const [noSite, setNoSite] = useState("");
+  const [situacao, setSituacao] = useState("");
+  const [faixa, setFaixa] = useState("");
   const [categoria, setCategoria] = useState("");
   const [modal, setModal] = useState(null);
 
-  // Quantas vezes cada presente ja foi dado (so pagamentos confirmados).
-  const recebidos = useMemo(() => {
+  // Quem esta segurando cada presente (reservado ou ja dado).
+  const escolha = useMemo(() => {
     const m = {};
-    for (const c of dados.claims) {
-      if (c.status !== "confirmado" || !c.gift_id) continue;
-      m[c.gift_id] = m[c.gift_id] || { n: 0, total: 0 };
-      m[c.gift_id].n++;
-      m[c.gift_id].total += Number(c.valor);
-    }
+    for (const c of dados.claims) if (c.gift_id && (c.status === "pendente" || c.status === "confirmado")) m[c.gift_id] = c;
     return m;
   }, [dados.claims]);
 
@@ -140,12 +135,19 @@ export default function AbaPresentes({ dados, recarregar }) {
     if (busca && !normalizar(p.nome).includes(normalizar(busca).trim())) return false;
     if (noSite === "sim" && !p.publicado) return false;
     if (noSite === "nao" && p.publicado) return false;
+    if (situacao === "livre" && escolha[p.id]) return false;
+    if (situacao === "escolhido" && !escolha[p.id]) return false;
+    if (!naFaixa(p.preco, faixa)) return false;
     if (categoria && p.categoria !== categoria) return false;
     return true;
   });
 
+  const aparecendo = dados.presentes.filter((p) => p.publicado && !escolha[p.id]).length;
+  const escolhidos = dados.presentes.filter((p) => escolha[p.id]).length;
+  const guardados = dados.presentes.filter((p) => !p.publicado && !escolha[p.id]).length;
+
   const alternar = async (p) => {
-    const r = await db.from("gifts").update({ publicado: !p.publicado }).eq("id", p.id);
+    const r = await api("presentes", { method: "PATCH", corpo: { id: p.id, publicado: !p.publicado } });
     if (r.error) return aviso("Erro: " + r.error.message);
     aviso(p.publicado ? `"${p.nome}" saiu do site (continua guardado aqui)` : `"${p.nome}" agora aparece no site`);
     recarregar();
@@ -155,18 +157,41 @@ export default function AbaPresentes({ dados, recarregar }) {
 
   return (
     <section>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <Cartao n={aparecendo} r="APARECENDO NO SITE" cor="text-green-800" />
+        <Cartao n={guardados} r="GUARDADOS (FORA DO SITE)" />
+        <Cartao n={escolhidos} r="JÁ ESCOLHIDOS" />
+        <Cartao n={dados.presentes.length} r="TOTAL DE PRESENTES" />
+      </div>
+
       <Barra>
         <input className={`${cls.filtro} flex-1 min-w-[180px]`} placeholder="Buscar presente..." value={busca} onChange={(e) => setBusca(e.target.value)} />
         <select className={cls.filtro} value={noSite} onChange={(e) => setNoSite(e.target.value)} aria-label="No site">
           <option value="">No site e guardados</option>
-          <option value="sim">Só os que estão no site</option>
+          <option value="sim">Só os marcados para o site</option>
           <option value="nao">Só os guardados</option>
+        </select>
+        <select className={cls.filtro} value={situacao} onChange={(e) => setSituacao(e.target.value)} aria-label="Situação">
+          <option value="">Livres e escolhidos</option>
+          <option value="livre">Só os livres</option>
+          <option value="escolhido">Só os já escolhidos</option>
+        </select>
+        <select className={cls.filtro} value={faixa} onChange={(e) => setFaixa(e.target.value)} aria-label="Faixa de preço">
+          {FAIXAS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
         <select className={cls.filtro} value={categoria} onChange={(e) => setCategoria(e.target.value)} aria-label="Categoria">
           <option value="">Todas as categorias</option>
           {CATEGORIAS.map((c) => <option key={c.nome}>{c.nome}</option>)}
         </select>
+      </Barra>
+      <Barra>
         <button className={cls.btn} onClick={() => setModal({ tipo: "editar", presente: null })}>+ Novo presente</button>
+        <button className={cls.btnSec} disabled={!filtrados.length} onClick={() => setModal({ tipo: "lote", publicado: true })}>
+          Pôr os {filtrados.length} filtrados no site
+        </button>
+        <button className={cls.btnSec} disabled={!filtrados.length} onClick={() => setModal({ tipo: "lote", publicado: false })}>
+          Guardar os {filtrados.length} filtrados
+        </button>
         <Contador>{filtrados.length} de {dados.presentes.length}</Contador>
       </Barra>
 
@@ -179,65 +204,111 @@ export default function AbaPresentes({ dados, recarregar }) {
             <th className={cls.th}>Presente</th>
             <th className={cls.th}>Preço</th>
             <th className={cls.th}>No site</th>
-            <th className={`${cls.th} hidden md:table-cell`}>Já recebido</th>
+            <th className={cls.th}>Situação</th>
             <th className={cls.th}></th>
           </>
         }
       >
-        {filtrados.map((p) => (
-          <tr key={p.id} className={p.publicado ? "hover:bg-blush/50" : "bg-stone-50 text-wine/70"}>
-            <td className={cls.td}>
-              <div className="w-10 border border-dust/60">
-                <IlustracaoPresente presente={p} />
-              </div>
-            </td>
-            <td className={cls.td}>
-              <b>{p.nome}</b>
-              <div className={cls.sub}>{p.categoria}</div>
-            </td>
-            <td className={`${cls.td} whitespace-nowrap`}>{reais(p.preco)}</td>
-            <td className={cls.td}>
-              <button onClick={() => alternar(p)} title="Clique para mudar">
-                {p.publicado ? <Tag tipo="vai">no site</Tag> : <Tag>guardado</Tag>}
-              </button>
-            </td>
-            <td className={`${cls.td} hidden md:table-cell`}>
-              {recebidos[p.id] ? (
-                <>
-                  {recebidos[p.id].n}× <span className={cls.sub}>· {reais(recebidos[p.id].total)}</span>
-                </>
-              ) : (
-                <span className={cls.sub}>—</span>
-              )}
-            </td>
-            <td className={cls.td}>
-              <div className="flex flex-wrap justify-end gap-1.5">
-                <button className={cls.mini} onClick={() => setModal({ tipo: "editar", presente: p })}>Editar</button>
-                <button className={cls.miniPerigo} onClick={() => setModal({ tipo: "excluir", presente: p })}>Excluir</button>
-              </div>
-            </td>
-          </tr>
-        ))}
+        {filtrados.map((p) => {
+          const c = escolha[p.id];
+          return (
+            <tr key={p.id} className={p.publicado ? "hover:bg-blush/50" : "bg-stone-50 text-wine/70"}>
+              <td className={cls.td}>
+                <div className="w-10 border border-dust/60">
+                  <IlustracaoPresente presente={p} />
+                </div>
+              </td>
+              <td className={cls.td}>
+                <b>{p.nome}</b>
+                <div className={cls.sub}>{p.categoria}</div>
+              </td>
+              <td className={`${cls.td} whitespace-nowrap`}>{reais(p.preco)}</td>
+              <td className={cls.td}>
+                <button onClick={() => alternar(p)} title="Clique para mudar">
+                  {p.publicado ? <Tag tipo="vai">no site</Tag> : <Tag>guardado</Tag>}
+                </button>
+              </td>
+              <td className={cls.td}>
+                {!c ? (
+                  <Tag tipo="Verde">Livre</Tag>
+                ) : c.status === "confirmado" ? (
+                  <>
+                    <Tag tipo="confirmado">Recebido</Tag>
+                    <div className={cls.sub}>{c.nome}</div>
+                  </>
+                ) : (
+                  <>
+                    <Tag tipo="destaque">{c.informado_em ? "Avisou que pagou" : "Reservado"}</Tag>
+                    <div className={cls.sub}>{c.nome}</div>
+                  </>
+                )}
+              </td>
+              <td className={cls.td}>
+                <div className="flex flex-wrap justify-end gap-1.5">
+                  <button className={cls.mini} onClick={() => setModal({ tipo: "editar", presente: p })}>Editar</button>
+                  {c && <button className={cls.mini} onClick={() => setModal({ tipo: "liberar", presente: p, claim: c })}>Liberar</button>}
+                  <button className={cls.miniPerigo} onClick={() => setModal({ tipo: "excluir", presente: p })}>Excluir</button>
+                </div>
+              </td>
+            </tr>
+          );
+        })}
       </Tabela>
 
       {modal?.tipo === "editar" && <EditarPresente presente={modal.presente} onFechar={fechar} recarregar={recarregar} />}
+      {modal?.tipo === "lote" && (
+        <ModalAcao
+          titulo={modal.publicado ? "Pôr no site" : "Guardar"}
+          textoSalvar="Confirmar"
+          onFechar={fechar}
+          onSalvar={async () => {
+            const r = await api("presentes", { method: "PATCH", corpo: { ids: filtrados.map((p) => p.id), publicado: modal.publicado } });
+            if (r.error) return falhou(aviso, "Erro: " + r.error.message);
+            aviso(modal.publicado ? `${filtrados.length} presentes marcados para o site` : `${filtrados.length} presentes guardados`);
+            await recarregar();
+          }}
+        >
+          {modal.publicado
+            ? <>Os <b>{filtrados.length}</b> presentes da lista filtrada passam a aparecer no site (menos os que já foram escolhidos, que continuam fora).</>
+            : <>Os <b>{filtrados.length}</b> presentes da lista filtrada saem do site e ficam guardados aqui. Nada é apagado.</>}
+        </ModalAcao>
+      )}
+      {modal?.tipo === "liberar" && (
+        <ModalAcao
+          titulo="Liberar presente"
+          textoSalvar="Liberar"
+          onFechar={fechar}
+          onSalvar={async () => {
+            const r = await api("pagamentos", { method: "PATCH", corpo: { id: modal.claim.id, status: "cancelado" } });
+            if (r.error) return falhou(aviso, "Erro: " + r.error.message);
+            aviso("Presente liberado");
+            await recarregar();
+          }}
+        >
+          <b>{modal.presente.nome}</b> volta a ficar livre no site, e o presente de <b>{modal.claim.nome}</b> (
+          {reais(modal.claim.valor)}) fica marcado como cancelado em Pagamentos.
+          {modal.claim.status === "confirmado" && (
+            <Aviso>Esse presente já foi marcado como recebido. Só libere se o dinheiro foi devolvido ou não chegou.</Aviso>
+          )}
+        </ModalAcao>
+      )}
       {modal?.tipo === "excluir" && (
         <ModalAcao
           titulo="Excluir presente"
           textoSalvar="Excluir"
           onFechar={fechar}
           onSalvar={async () => {
-            const r = await db.from("gifts").delete().eq("id", modal.presente.id);
+            const r = await api(`presentes?id=${modal.presente.id}`, { method: "DELETE" });
             if (r.error) return falhou(aviso, "Erro: " + r.error.message);
             aviso("Presente excluído");
             await recarregar();
           }}
         >
           Vai apagar <b>{modal.presente.nome}</b> da lista. Não dá para desfazer.
-          {recebidos[modal.presente.id] && (
+          {escolha[modal.presente.id] && (
             <Aviso>
-              Esse presente já foi dado {recebidos[modal.presente.id].n}×. Os pagamentos continuam guardados em Pagamentos,
-              mas prefira desmarcar &ldquo;no site&rdquo; para só esconder.
+              {escolha[modal.presente.id].nome} já escolheu esse presente. O pagamento continua guardado em Pagamentos,
+              mas prefira clicar em &ldquo;no site&rdquo; para só esconder.
             </Aviso>
           )}
         </ModalAcao>

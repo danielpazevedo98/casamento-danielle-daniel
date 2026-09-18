@@ -61,6 +61,7 @@ export default function PresenteDetalhes() {
     const resp = await r.json().catch(() => ({}));
     if (!r.ok) {
       setEnviando(null);
+      if (resp.escolhido) return setDados({ ...dados, escolhido: true });
       return setErro(resp.error || "Algo deu errado. Tente de novo, por favor.");
     }
     if (metodo === "cartao") {
@@ -108,6 +109,26 @@ export default function PresenteDetalhes() {
   }
 
   const { presente, cartao } = dados;
+
+  // Cada presente so pode ser dado uma vez.
+  if (dados.escolhido && !pix) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-blush flex items-center justify-center px-6">
+          <div className="text-center max-w-md">
+            <div className="text-5xl mb-6" aria-hidden="true">💝</div>
+            <h2 className="font-serif text-3xl text-deep mb-3">Esse já foi escolhido!</h2>
+            <p className="font-serif text-lg text-wine mb-8">
+              Alguém chegou antes e escolheu <strong>{presente.nome}</strong>. Mas tem muitos outros esperando por você.
+            </p>
+            <Link href="/presentes" className="inline-block px-8 py-3 bg-wine text-blush font-sans text-xs tracking-[0.25em] hover:bg-fuchsia transition-colors">
+              VER OUTROS PRESENTES
+            </Link>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -197,6 +218,11 @@ export default function PresenteDetalhes() {
                   <p className="mt-5 font-serif italic text-sm text-wine">
                     Se preferir, use a chave <strong className="not-italic font-sans">{pix.pix.chave}</strong>
                     {pix.pix.banco && <> ({pix.pix.banco})</>} e digite o valor.
+                  </p>
+
+                  <p className="mt-5 font-sans text-xs text-wine/80">
+                    O presente fica reservado para você por {pix.reservaMinutos === 60 ? "1 hora" : `${pix.reservaMinutos} minutos`}.
+                    Depois de pagar, clique no botão abaixo para avisar os noivos.
                   </p>
 
                   <button

@@ -4,26 +4,8 @@ import Link from "next/link";
 import Layout from "@/components/Layout";
 import { Cabecalho } from "@/components/Enfeites";
 import IlustracaoPresente from "@/components/IlustracaoPresente";
-import { CATEGORIAS } from "@/lib/evento";
+import { CATEGORIAS, FAIXAS, naFaixa } from "@/lib/evento";
 import { normalizar, reais } from "@/lib/formato";
-
-const FAIXAS = [
-  ["", "Todas as faixas de preço"],
-  ["0-100", "Até R$ 100"],
-  ["100-200", "R$ 100 a R$ 200"],
-  ["200-500", "R$ 200 a R$ 500"],
-  ["500-1000", "R$ 500 a R$ 1.000"],
-  ["1000-", "Acima de R$ 1.000"],
-];
-
-// Faixa vem como "100-200" ou "1000-" (sem teto). O limite de baixo entra na
-// faixa e o de cima nao: R$ 100 aparece em "R$ 100 a R$ 200". (Regra do chá.)
-function naFaixa(preco, faixa) {
-  if (!faixa) return true;
-  const [min, max] = faixa.split("-");
-  if (preco < Number(min)) return false;
-  return max === "" ? true : preco < Number(max);
-}
 
 const controle =
   "py-3 px-4 bg-white border border-dust focus:outline-none focus:border-fuchsia font-sans text-sm text-deep";
@@ -50,7 +32,7 @@ export default function Presentes() {
       .filter(
         (p) =>
           (!q || normalizar(p.nome + " " + (p.descricao || "")).includes(q)) &&
-          naFaixa(Number(p.preco), faixa) &&
+          naFaixa(p.preco, faixa) &&
           (!categoria || p.categoria === categoria)
       )
       .sort((a, b) => (ordem === "menor" ? a.preco - b.preco : b.preco - a.preco));
@@ -64,7 +46,7 @@ export default function Presentes() {
         <div className="max-w-6xl mx-auto">
           <Cabecalho sobre="COM CARINHO" titulo="Lista de Presentes">
             Sua presença já é o nosso maior presente. Mas, se quiser deixar um carinho extra, escolha um dos
-            &ldquo;presentes&rdquo; abaixo: o valor vai direto para os noivos começarem a vida a dois.
+            &ldquo;presentes&rdquo; abaixo: o valor vai direto para os noivos começarem a vida a dois. Cada presente só pode ser escolhido uma vez.
           </Cabecalho>
 
           <div className="bg-white/70 border border-dust p-4 md:p-5 mb-8 space-y-4">
@@ -101,7 +83,7 @@ export default function Presentes() {
               ))}
               {presentes && (
                 <span className="ml-auto font-sans text-xs text-wine/80">
-                  {filtrando ? `${lista.length} de ${presentes.length} presentes` : `${presentes.length} presentes`}
+                  {filtrando ? `${lista.length} de ${presentes.length} presentes` : `${presentes.length} presentes disponíveis`}
                 </span>
               )}
             </div>
@@ -111,6 +93,8 @@ export default function Presentes() {
             <p className="text-center font-serif text-xl text-wine italic">Não consegui carregar a lista. Recarregue a página.</p>
           ) : !presentes ? (
             <p className="text-center font-serif text-xl text-wine italic">Carregando presentes...</p>
+          ) : presentes.length === 0 ? (
+            <p className="text-center font-serif text-xl text-wine italic">Todos os presentes já foram escolhidos. Muito obrigado! 💝</p>
           ) : lista.length === 0 ? (
             <div className="text-center">
               <p className="font-serif text-xl text-wine italic mb-4">Nenhum presente com esses filtros.</p>

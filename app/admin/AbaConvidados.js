@@ -1,13 +1,11 @@
 "use client";
 import { useMemo, useState } from "react";
-import { supabaseNavegador } from "@/lib/supabase";
 import { normalizar } from "@/lib/formato";
-import { Aviso, Barra, Contador, ModalAcao, Rotulo, Tabela, Tag, TagPresenca, cls, falhou, useAviso } from "./ui";
+import { Aviso, Barra, Contador, ModalAcao, Rotulo, Tabela, Tag, TagPresenca, api, cls, falhou, useAviso } from "./ui";
 
 const NOVO_GRUPO = "novo";
 
 function EditarConvidado({ convidado, dados, onFechar, recarregar }) {
-  const db = supabaseNavegador();
   const aviso = useAviso();
   const [f, setF] = useState({
     nome: convidado?.nome || "",
@@ -24,14 +22,14 @@ function EditarConvidado({ convidado, dados, onFechar, recarregar }) {
 
     let grupoId = f.grupo ? Number(f.grupo) : null;
     if (f.grupo === NOVO_GRUPO) {
-      grupoId = Math.max(0, ...dados.grupos.map((g) => g.id)) + 1;
-      const r = await db.from("guest_groups").insert({ id: grupoId, nome: `Grupo ${grupoId}` });
+      const r = await api("grupos", { method: "POST" });
       if (r.error) return falhou(aviso, "Erro: " + r.error.message);
+      grupoId = r.data.id;
     }
     const registro = { nome, origem: f.origem, categoria: f.categoria, lista: f.lista, grupo_id: grupoId };
     const r = convidado
-      ? await db.from("guests").update(registro).eq("id", convidado.id)
-      : await db.from("guests").insert(registro);
+      ? await api("convidados", { method: "PATCH", corpo: { id: convidado.id, ...registro } })
+      : await api("convidados", { method: "POST", corpo: registro });
     if (r.error) return falhou(aviso, "Erro: " + r.error.message);
     aviso(convidado ? "Convidado atualizado" : "Convidado adicionado");
     await recarregar();
@@ -80,7 +78,6 @@ function EditarConvidado({ convidado, dados, onFechar, recarregar }) {
 }
 
 export default function AbaConvidados({ dados, recarregar }) {
-  const db = supabaseNavegador();
   const aviso = useAviso();
   const [busca, setBusca] = useState("");
   const [lista, setLista] = useState("");
@@ -100,10 +97,10 @@ export default function AbaConvidados({ dados, recarregar }) {
   }, [dados.convidados, busca, lista, presenca]);
 
   const marcar = async (c, p) => {
-    const r = await db
-      .from("guests")
-      .update({ presenca: p, rsvp_em: new Date().toISOString(), confirmado_por: "Anotado pelos noivos" })
-      .eq("id", c.id);
+    const r = await api("convidados", {
+      method: "PATCH",
+      corpo: { id: c.id, presenca: p, rsvp_em: new Date().toISOString(), confirmado_por: "Anotado pelos noivos" },
+    });
     if (r.error) return aviso("Erro: " + r.error.message);
     aviso(`${c.nome} → ${p === "vai" ? "Vai" : "Não vai"}`);
     recarregar();
@@ -189,7 +186,10 @@ export default function AbaConvidados({ dados, recarregar }) {
           textoSalvar="Confirmar"
           onFechar={fechar}
           onSalvar={async () => {
-            const r = await db.from("guests").update({ presenca: null, rsvp_em: null, confirmado_por: null }).eq("id", modal.convidado.id);
+            const r = await api("convidados", {
+              method: "PATCH",
+              corpo: { id: modal.convidado.id, presenca: null, rsvp_em: null, confirmado_por: null },
+            });
             if (r.error) return falhou(aviso, "Erro: " + r.error.message);
             aviso("Resposta desfeita");
             await recarregar();
@@ -205,7 +205,7 @@ export default function AbaConvidados({ dados, recarregar }) {
           textoSalvar="Excluir"
           onFechar={fechar}
           onSalvar={async () => {
-            const r = await db.from("guests").delete().eq("id", modal.convidado.id);
+            const r = await api(`convidados?id=${modal.convidado.id}`, { method: "DELETE" });
             if (r.error) return falhou(aviso, "Erro: " + r.error.message);
             aviso("Convidado excluído");
             await recarregar();
