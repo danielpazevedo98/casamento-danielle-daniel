@@ -23,7 +23,7 @@ function mensagemRsvp(respostas) {
 }
 
 const campo =
-  "w-full py-3 px-5 bg-white border border-dust focus:outline-none focus:border-fuchsia font-serif text-lg text-deep";
+  "w-full py-3 px-5 bg-carta border border-dust focus:outline-none focus:border-fuchsia font-serif text-lg text-deep";
 
 export default function Confirmacao() {
   const [busca, setBusca] = useState("");
@@ -159,7 +159,7 @@ export default function Confirmacao() {
               className={`${campo} disabled:bg-petal/40`}
             />
             {sugestoes && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-dust border-t-0 shadow-lg z-10">
+              <div className="absolute top-full left-0 right-0 bg-carta border border-dust border-t-0 shadow-lg z-10">
                 {sugestoes.length ? (
                   sugestoes.map((s) => (
                     <button
@@ -183,7 +183,7 @@ export default function Confirmacao() {
           </div>
 
           {membros && (
-            <div className="mt-8 bg-white border border-dust p-6 md:p-8">
+            <div className="mt-8 bg-carta border border-dust p-6 md:p-8">
               <p className="text-xs tracking-[0.3em] text-fuchsia font-sans font-medium text-center">QUEM VAI COMPARECER?</p>
               <p className="font-serif italic text-wine text-center mt-2 mb-6">
                 Você não precisa responder por todo mundo: marque só quem você puder confirmar agora.

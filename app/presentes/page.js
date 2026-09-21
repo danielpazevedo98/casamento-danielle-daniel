@@ -8,7 +8,7 @@ import { CATEGORIAS, FAIXAS, naFaixa } from "@/lib/evento";
 import { normalizar, reais } from "@/lib/formato";
 
 const controle =
-  "py-3 px-4 bg-white border border-dust focus:outline-none focus:border-fuchsia font-sans text-sm text-deep";
+  "py-3 px-4 bg-carta border border-dust focus:outline-none focus:border-fuchsia font-sans text-sm text-deep";
 
 export default function Presentes() {
   const [presentes, setPresentes] = useState(null);
@@ -49,7 +49,7 @@ export default function Presentes() {
             &ldquo;presentes&rdquo; abaixo: o valor vai direto para os noivos começarem a vida a dois. Cada presente só pode ser escolhido uma vez.
           </Cabecalho>
 
-          <div className="bg-white/70 border border-dust p-4 md:p-5 mb-8 space-y-4">
+          <div className="bg-carta/70 border border-dust p-4 md:p-5 mb-8 space-y-4">
             <div className="flex flex-col lg:flex-row gap-3">
               <input
                 type="search"
@@ -75,7 +75,7 @@ export default function Presentes() {
                   onClick={() => setCategoria(c.nome)}
                   aria-pressed={categoria === c.nome}
                   className={`px-4 py-2 font-sans text-xs tracking-[0.15em] border transition-colors ${
-                    categoria === c.nome ? "bg-wine text-blush border-wine" : "border-dust text-wine hover:border-wine bg-white"
+                    categoria === c.nome ? "bg-wine text-blush border-wine" : "border-dust text-wine hover:border-wine bg-carta"
                   }`}
                 >
                   {(c.nome || "Todos").toUpperCase()}
@@ -114,7 +114,7 @@ export default function Presentes() {
                 <Link
                   key={p.id}
                   href={`/presentes/${p.id}`}
-                  className="group bg-white border border-dust hover:shadow-lg transition-shadow flex sm:flex-col"
+                  className="group bg-carta border border-dust hover:shadow-lg transition-shadow flex sm:flex-col"
                 >
                   <div className="w-24 min-[360px]:w-28 shrink-0 sm:w-full overflow-hidden">
                     <div className="h-full sm:h-auto transition-transform duration-500 group-hover:scale-105">

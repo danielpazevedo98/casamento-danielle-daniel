@@ -36,7 +36,7 @@ export default function IlustracaoPresente({ presente, tamanho = "normal", colun
       style={{ background: `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)` }}
       aria-hidden="true"
     >
-      <div className={`absolute ${circulo} aspect-square rounded-full bg-white/35`} />
+      <div className={`absolute ${circulo} aspect-square rounded-full bg-carta/35`} />
       <div className={`absolute ${circulo} aspect-square rounded-full border border-white/60 translate-x-2 translate-y-2`} />
       <span className={`relative drop-shadow-sm ${EMOJI[tamanho]}`}>
         {presente.emoji || "🎁"}

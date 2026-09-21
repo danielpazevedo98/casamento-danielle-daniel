@@ -7,7 +7,7 @@ import IlustracaoPresente from "@/components/IlustracaoPresente";
 import { reais } from "@/lib/formato";
 
 const campo =
-  "w-full py-3 px-4 bg-white border border-dust focus:outline-none focus:border-fuchsia font-serif text-lg text-deep";
+  "w-full py-3 px-4 bg-carta border border-dust focus:outline-none focus:border-fuchsia font-serif text-lg text-deep";
 const rotulo = "block mb-1 text-[0.7rem] tracking-[0.2em] text-wine font-sans";
 
 function Copiar({ texto, children }) {
@@ -143,7 +143,7 @@ export default function PresenteDetalhes() {
             ← VOLTAR PARA A LISTA
           </Link>
 
-          <div className="grid lg:grid-cols-[1fr_1.1fr] bg-white border border-dust shadow-lg">
+          <div className="grid lg:grid-cols-[1fr_1.1fr] bg-carta border border-dust shadow-lg">
             <div className="lg:border-r border-dust">
               <IlustracaoPresente presente={presente} tamanho="grande" />
               <div className="p-6 md:p-8">

@@ -9,11 +9,12 @@ module.exports = {
         sans: ["var(--font-sans)", '"Outfit"', "sans-serif"],
       },
       colors: {
-        // Paleta rosa v3
-        blush: "#fce4e0",      // rosa balé (fundo principal)
-        petal: "#f8d0c8",      // rosa pálido (seções)
-        dust: "#efb5ab",       // rosa empoeirado (cartões)
-        rose: "#e89aa0",       // rosa antigo (bordas marcadas)
+        // Base creme, tirada do papel do convite
+        blush: "#f5f0ea",      // creme (fundo principal)
+        petal: "#efe6dc",      // creme quente (faixas e seções)
+        carta: "#fffcf7",      // branco quente (cartões)
+        dust: "#e3d7c8",       // bege (bordas)
+        rose: "#d4b1b5",       // rosa acinzentado (linha do quadro)
         // Texto / vinho
         wine: "#8a4a48",       // vinho suave
         deep: "#5a2e2e",       // vinho profundo

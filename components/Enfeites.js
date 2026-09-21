@@ -1,15 +1,16 @@
 import Image from "next/image";
+import CarrosselFotos from "@/components/CarrosselFotos";
 
 // Elementos visuais do PROTOTIPO-VISUAL.jsx, reaproveitados nas paginas.
 
 export const Flores = ({ className = "", style = {} }) => (
   <svg viewBox="0 0 200 200" className={`pointer-events-none ${className}`} style={style} fill="none" aria-hidden="true">
     <g opacity="0.55">
-      <circle cx="40" cy="40" r="16" fill="#e89aa0" opacity="0.5" />
+      <circle cx="40" cy="40" r="16" fill="#e4c3c1" opacity="0.6" />
       <circle cx="40" cy="40" r="10" fill="#be185d" opacity="0.35" />
       <circle cx="40" cy="40" r="5" fill="#ec4899" opacity="0.5" />
       <circle cx="40" cy="40" r="2" fill="#be185d" opacity="0.8" />
-      <ellipse cx="70" cy="35" rx="18" ry="6" fill="#e89aa0" opacity="0.35" transform="rotate(-25 70 35)" />
+      <ellipse cx="70" cy="35" rx="18" ry="6" fill="#e4c3c1" opacity="0.45" transform="rotate(-25 70 35)" />
       <ellipse cx="60" cy="65" rx="15" ry="5" fill="#c89968" opacity="0.35" transform="rotate(40 60 65)" />
       <ellipse cx="30" cy="70" rx="12" ry="4" fill="#ec4899" opacity="0.25" transform="rotate(-70 30 70)" />
       <circle cx="80" cy="60" r="4" fill="#be185d" opacity="0.5" />
@@ -73,20 +74,24 @@ const DESENHOS = {
   ),
 };
 
-// Formatos da foto: "retrato" (4:5, foto dos noivos) ou "paisagem" (3:2, locais).
+// Formatos da foto: "retrato" (2:3, fotos do casal) ou "quadrado" (locais).
 const FORMATOS = {
-  retrato: { caixa: "max-w-md", proporcao: "aspect-[4/5]", sizes: "(min-width: 768px) 28rem, 90vw" },
+  retrato: { caixa: "max-w-md", proporcao: "aspect-[2/3]", sizes: "(min-width: 768px) 28rem, 90vw" },
+  quadrado: { caixa: "max-w-sm", proporcao: "aspect-square", sizes: "(min-width: 768px) 24rem, 90vw" },
   paisagem: { caixa: "max-w-xl", proporcao: "aspect-[3/2]", sizes: "(min-width: 768px) 36rem, 90vw" },
 };
 
-// Foto com moldura deslocada. Sem foto, mostra o desenho do prototipo.
-export function FotoMoldura({ src, alt, desenho = "noivos", legenda, prioridade = false, formato = "retrato" }) {
+// Foto com moldura deslocada. Com varias fotos, elas passam em carrossel.
+// Sem foto nenhuma, mostra o desenho do prototipo.
+export function FotoMoldura({ src, fotos, alt, desenho = "noivos", legenda, prioridade = false, formato = "retrato" }) {
   const f = FORMATOS[formato];
   return (
     <div className={`relative w-full ${f.caixa} mx-auto`}>
-      <div className="absolute -top-3 -left-3 md:-top-4 md:-left-4 w-full h-full border border-fuchsia/40" aria-hidden="true" />
+      <div className="absolute -top-3 -left-3 md:-top-4 md:-left-4 w-full h-full border border-rose" aria-hidden="true" />
       <div className={`relative w-full ${f.proporcao} overflow-hidden bg-gradient-to-br from-blush via-petal to-dust`}>
-        {src ? (
+        {fotos?.length ? (
+          <CarrosselFotos fotos={fotos} alt={alt} sizes={f.sizes} />
+        ) : src ? (
           <Image src={src} alt={alt} fill priority={prioridade} sizes={f.sizes} className="object-cover" />
         ) : (
           <>

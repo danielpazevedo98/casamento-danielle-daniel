@@ -18,7 +18,7 @@ export default function Imagem() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #fce4e0 0%, #f8d0c8 60%, #efb5ab 100%)",
+          background: "linear-gradient(135deg, #f5f0ea 0%, #efe6dc 60%, #e3d7c8 100%)",
           color: "#5a2e2e",
         }}
       >

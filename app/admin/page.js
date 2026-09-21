@@ -27,7 +27,7 @@ function Login({ onEntrar, configurada }) {
 
   return (
     <div className="min-h-screen bg-blush flex items-center justify-center px-6">
-      <form onSubmit={entrar} className="max-w-sm w-full bg-white p-8 border border-dust shadow-lg text-center">
+      <form onSubmit={entrar} className="max-w-sm w-full bg-carta p-8 border border-dust shadow-lg text-center">
         <h1 className="font-serif text-3xl text-deep">Área restrita</h1>
         <p className="font-sans text-xs text-wine mt-1 mb-6">Casamento · Danielle &amp; Daniel</p>
         {!configurada && (
@@ -100,7 +100,7 @@ function Painel({ onSair }) {
               key={id}
               onClick={() => setAba(id)}
               className={`px-4 py-2.5 font-sans text-xs tracking-[0.15em] border transition-colors ${
-                aba === id ? "bg-wine text-blush border-wine" : "bg-white text-wine border-dust hover:border-wine"
+                aba === id ? "bg-wine text-blush border-wine" : "bg-carta text-wine border-dust hover:border-wine"
               }`}
             >
               {rotulo.toUpperCase()}

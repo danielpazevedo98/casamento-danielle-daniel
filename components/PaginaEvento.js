@@ -12,7 +12,7 @@ export default function PaginaEvento({ sobre, titulo, local, desenho, legendaFot
           <Cabecalho sobre={sobre} titulo={titulo} />
 
           <div className="max-w-xl mx-auto">
-            <div className="relative bg-white p-6 sm:p-8 md:p-10 border border-dust shadow-[0_1px_0_#c89968,0_30px_60px_-30px_rgba(190,24,93,0.25)]">
+            <div className="relative bg-carta p-6 sm:p-8 md:p-10 border border-dust shadow-[0_1px_0_#c89968,0_30px_60px_-30px_rgba(190,24,93,0.25)]">
               {["top-2 left-2 border-t border-l", "top-2 right-2 border-t border-r", "bottom-2 left-2 border-b border-l", "bottom-2 right-2 border-b border-r"].map((c) => (
                 <div key={c} className={`absolute w-6 h-6 border-gold ${c}`} aria-hidden="true" />
               ))}
@@ -57,7 +57,7 @@ export default function PaginaEvento({ sobre, titulo, local, desenho, legendaFot
             </div>
 
             <div className="mt-14 md:mt-16 px-3 md:px-4">
-              <FotoMoldura src={local.foto} alt={local.local} desenho={desenho} legenda={legendaFoto} formato="paisagem" />
+              <FotoMoldura src={local.foto} alt={local.local} desenho={desenho} legenda={legendaFoto} formato="quadrado" />
             </div>
           </div>
         </div>

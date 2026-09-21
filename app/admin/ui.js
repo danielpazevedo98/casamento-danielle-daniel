@@ -5,11 +5,11 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 
 export const cls = {
   btn: "px-4 py-2.5 bg-wine text-blush font-sans text-xs tracking-[0.12em] hover:bg-fuchsia transition-colors disabled:opacity-50 whitespace-nowrap",
-  btnSec: "px-4 py-2.5 border border-wine text-wine bg-white font-sans text-xs tracking-[0.12em] hover:bg-blush transition-colors disabled:opacity-50 whitespace-nowrap",
-  mini: "px-2.5 py-1 text-[11px] font-sans font-medium border border-dust text-wine bg-white hover:border-wine hover:text-deep whitespace-nowrap disabled:opacity-50",
-  miniPerigo: "px-2.5 py-1 text-[11px] font-sans font-medium border border-dust text-wine bg-white hover:border-red-700 hover:text-red-700 whitespace-nowrap",
-  campo: "w-full px-3 py-2.5 border border-dust bg-white text-deep font-sans text-sm focus:outline-none focus:border-fuchsia",
-  filtro: "px-3 py-2.5 border border-dust bg-white text-deep font-sans text-sm focus:outline-none focus:border-fuchsia",
+  btnSec: "px-4 py-2.5 border border-wine text-wine bg-carta font-sans text-xs tracking-[0.12em] hover:bg-blush transition-colors disabled:opacity-50 whitespace-nowrap",
+  mini: "px-2.5 py-1 text-[11px] font-sans font-medium border border-dust text-wine bg-carta hover:border-wine hover:text-deep whitespace-nowrap disabled:opacity-50",
+  miniPerigo: "px-2.5 py-1 text-[11px] font-sans font-medium border border-dust text-wine bg-carta hover:border-red-700 hover:text-red-700 whitespace-nowrap",
+  campo: "w-full px-3 py-2.5 border border-dust bg-carta text-deep font-sans text-sm focus:outline-none focus:border-fuchsia",
+  filtro: "px-3 py-2.5 border border-dust bg-carta text-deep font-sans text-sm focus:outline-none focus:border-fuchsia",
   th: "text-left px-3 py-2.5 font-sans font-medium text-[11px] tracking-[0.12em] uppercase",
   td: "px-3 py-2.5 border-t border-dust/70 align-middle",
   sub: "text-[11.5px] text-wine/70",
@@ -74,7 +74,7 @@ export function Modal({ titulo, onFechar, children }) {
       className="fixed inset-0 z-50 bg-deep/50 flex items-center justify-center p-4"
       onMouseDown={(e) => e.target === e.currentTarget && onFechar()}
     >
-      <div role="dialog" aria-modal="true" aria-label={titulo} className="bg-white w-full max-w-md max-h-[88vh] overflow-y-auto p-6 shadow-xl">
+      <div role="dialog" aria-modal="true" aria-label={titulo} className="bg-carta w-full max-w-md max-h-[88vh] overflow-y-auto p-6 shadow-xl">
         <h3 className="font-serif text-2xl text-deep mb-4">{titulo}</h3>
         {children}
       </div>
@@ -136,7 +136,7 @@ export const TagPresenca = ({ p }) =>
   p === "vai" ? <Tag tipo="vai">Vai</Tag> : p === "nao_vai" ? <Tag tipo="nao_vai">Não vai</Tag> : <Tag>Pendente</Tag>;
 
 export const Cartao = ({ n, r, cor = "" }) => (
-  <div className="bg-white border border-dust px-4 py-3.5">
+  <div className="bg-carta border border-dust px-4 py-3.5">
     <div className={`font-serif text-3xl leading-tight ${cor || "text-fuchsia"}`}>{n}</div>
     <div className="font-sans text-[11px] tracking-[0.1em] text-wine mt-1">{r}</div>
   </div>
@@ -148,7 +148,7 @@ export const Secao = ({ children }) => (
 
 export function Tabela({ cabecalho, children, vazio, colunas }) {
   return (
-    <div className="bg-white border border-dust overflow-x-auto">
+    <div className="bg-carta border border-dust overflow-x-auto">
       <table className="w-full font-sans text-[13px] text-deep">
         <thead className="bg-wine text-blush">
           <tr>{cabecalho}</tr>

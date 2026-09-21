@@ -52,7 +52,7 @@ export default function Inicio() {
         </section>
 
         <section className="relative overflow-hidden bg-petal px-10 py-14 md:py-20">
-          <FotoMoldura src={EVENTO.fotoNoivos} alt="Danielle e Daniel" desenho="noivos" legenda="Foto dos noivos · em breve" prioridade />
+          <FotoMoldura fotos={EVENTO.fotosNoivos} alt="Danielle e Daniel" desenho="noivos" legenda="Foto dos noivos · em breve" prioridade />
           <Flores className="absolute w-32 md:w-40 bottom-0 right-0 rotate-180" />
         </section>
 
