@@ -10,7 +10,7 @@ export default function Inicio() {
     <Layout>
       <div className="min-h-screen flex flex-col bg-blush">
         <section className="relative overflow-hidden px-6 md:px-16 pt-20 pb-14 md:pt-24 md:pb-20 text-center">
-          <Flores className="absolute w-32 md:w-44 top-0 right-0" />
+          <Flores canto="direita" />
           <div className="relative max-w-2xl mx-auto">
             <div className="flex items-center justify-center gap-3 mb-6">
               <div className="h-px w-8 bg-fuchsia" />
@@ -53,10 +53,10 @@ export default function Inicio() {
 
         <section className="relative overflow-hidden px-10 pb-4 md:pb-8">
           <FotoMoldura fotos={EVENTO.fotosNoivos} alt="Danielle e Daniel" desenho="noivos" legenda="Foto dos noivos · em breve" prioridade />
-          <Flores className="absolute w-32 md:w-40 bottom-0 right-0 rotate-180" />
         </section>
 
-        <section className="px-6 py-14 md:py-16">
+        <section className="relative overflow-hidden px-6 py-14 md:py-16">
+          <Flores canto="esquerda" />
           <div className="max-w-xl mx-auto bg-carta border border-dust p-8 md:p-10 text-center shadow-[0_1px_0_#c89968,0_30px_60px_-30px_rgba(138,74,72,0.2)]">
             <p className="text-xs tracking-[0.4em] text-fuchsia font-sans font-medium">TRAJE</p>
             <p className="font-serif text-3xl text-deep mt-3">{EVENTO.traje.titulo}</p>

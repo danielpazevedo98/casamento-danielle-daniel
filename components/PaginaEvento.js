@@ -6,8 +6,8 @@ export default function PaginaEvento({ sobre, titulo, local, desenho, legendaFot
   return (
     <Layout>
       <div className="relative min-h-screen bg-blush px-6 md:px-16 pt-20 pb-16 md:py-16 overflow-hidden">
-        <Flores className="absolute w-32 md:w-48 top-0 right-0" />
-        <Flores className="absolute w-32 md:w-44 bottom-0 left-0 rotate-180" />
+        <Flores canto="direita" />
+        <Flores canto="esquerda" />
         <div className="relative max-w-5xl mx-auto">
           <Cabecalho sobre={sobre} titulo={titulo} />
 

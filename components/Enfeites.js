@@ -3,23 +3,34 @@ import CarrosselFotos from "@/components/CarrosselFotos";
 
 // Elementos visuais do PROTOTIPO-VISUAL.jsx, reaproveitados nas paginas.
 
-export const Flores = ({ className = "", style = {} }) => (
-  <svg viewBox="0 0 200 200" className={`pointer-events-none ${className}`} style={style} fill="none" aria-hidden="true">
-    <g opacity="0.55">
-      <circle cx="40" cy="40" r="16" fill="#e4c3c1" opacity="0.6" />
-      <circle cx="40" cy="40" r="10" fill="#be185d" opacity="0.35" />
-      <circle cx="40" cy="40" r="5" fill="#ec4899" opacity="0.5" />
-      <circle cx="40" cy="40" r="2" fill="#be185d" opacity="0.8" />
-      <ellipse cx="70" cy="35" rx="18" ry="6" fill="#e4c3c1" opacity="0.45" transform="rotate(-25 70 35)" />
-      <ellipse cx="60" cy="65" rx="15" ry="5" fill="#c89968" opacity="0.35" transform="rotate(40 60 65)" />
-      <ellipse cx="30" cy="70" rx="12" ry="4" fill="#ec4899" opacity="0.25" transform="rotate(-70 30 70)" />
-      <circle cx="80" cy="60" r="4" fill="#be185d" opacity="0.5" />
-      <circle cx="25" cy="90" r="3" fill="#ec4899" opacity="0.5" />
-      <path d="M 40 50 Q 50 80, 30 110" stroke="#8a4a48" strokeWidth="0.7" opacity="0.4" />
-      <path d="M 50 60 Q 70 90, 60 130" stroke="#8a4a48" strokeWidth="0.7" opacity="0.4" />
-    </g>
-  </svg>
-);
+// Buques recortados do papel do convite. Ficam nos cantos, com as bordas
+// esmaecidas para se fundirem no creme do fundo.
+const CANTOS = {
+  direita: {
+    src: "/fotos/flor-direita.jpg",
+    posicao: "top-0 right-0 w-24 sm:w-28 md:w-36 xl:w-48 opacity-90",
+    mascara: "linear-gradient(to bottom left, #000 42%, transparent 92%)",
+  },
+  esquerda: {
+    src: "/fotos/flor-esquerda.jpg",
+    posicao: "bottom-0 left-0 w-32 sm:w-44 md:w-56 xl:w-72 opacity-90",
+    mascara: "linear-gradient(to top right, #000 42%, transparent 92%)",
+  },
+};
+
+export const Flores = ({ canto = "direita", className = "" }) => {
+  const c = CANTOS[canto];
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={c.src}
+      alt=""
+      aria-hidden="true"
+      className={`pointer-events-none select-none absolute ${c.posicao} ${className}`}
+      style={{ WebkitMaskImage: c.mascara, maskImage: c.mascara }}
+    />
+  );
+};
 
 export const Divisor = () => (
   <div className="flex items-center justify-center gap-3 my-3" aria-hidden="true">

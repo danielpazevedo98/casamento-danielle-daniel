@@ -2,7 +2,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Flores } from "@/components/Enfeites";
 
 const ITENS = [
   { href: "/inicio", label: "Início" },
@@ -38,7 +37,6 @@ export default function Layout({ children }) {
           aberto ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } bg-blush border-r border-dust/80 overflow-hidden`}
       >
-        <Flores className="absolute w-36 -top-5 -right-5 -scale-x-100" />
         <div className="relative p-8 h-full flex flex-col">
           <div className="text-center mb-12 mt-4">
             <div className="w-20 h-20 mx-auto mb-4 rounded-full border-2 border-fuchsia/40 flex items-center justify-center">
