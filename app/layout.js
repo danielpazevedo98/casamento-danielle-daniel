@@ -1,5 +1,6 @@
 import { Cormorant_Garamond, Outfit } from "next/font/google";
 import "./globals.css";
+import Musica from "@/components/Musica";
 
 const serif = Cormorant_Garamond({
   subsets: ["latin"],
@@ -29,7 +30,10 @@ export const viewport = { themeColor: "#f5f0ea" };
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR" className={`${serif.variable} ${sans.variable}`}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        {children}
+        <Musica />
+      </body>
     </html>
   );
 }
