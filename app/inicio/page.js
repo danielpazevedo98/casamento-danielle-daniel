@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Layout from "@/components/Layout";
 import Contagem from "@/components/Contagem";
-import { Flores, FotoMoldura } from "@/components/Enfeites";
+import { Divisor, Flores, FotoMoldura } from "@/components/Enfeites";
 import { EVENTO } from "@/lib/evento";
 
 // Uma coluna so: nomes e convite em cima, foto dos noivos embaixo, contagem no fim.
@@ -54,6 +54,15 @@ export default function Inicio() {
         <section className="relative overflow-hidden bg-petal px-10 py-14 md:py-20">
           <FotoMoldura fotos={EVENTO.fotosNoivos} alt="Danielle e Daniel" desenho="noivos" legenda="Foto dos noivos · em breve" prioridade />
           <Flores className="absolute w-32 md:w-40 bottom-0 right-0 rotate-180" />
+        </section>
+
+        <section className="px-6 py-14 md:py-16">
+          <div className="max-w-xl mx-auto bg-carta border border-dust p-8 md:p-10 text-center shadow-[0_1px_0_#c89968,0_30px_60px_-30px_rgba(138,74,72,0.2)]">
+            <p className="text-xs tracking-[0.4em] text-fuchsia font-sans font-medium">TRAJE</p>
+            <p className="font-serif text-3xl text-deep mt-3">{EVENTO.traje.titulo}</p>
+            <Divisor />
+            <p className="mt-3 font-serif italic text-lg text-wine leading-relaxed text-balance">{EVENTO.traje.recado}</p>
+          </div>
         </section>
 
         <Contagem />
