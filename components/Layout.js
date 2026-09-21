@@ -36,7 +36,7 @@ export default function Layout({ children }) {
       <aside
         className={`fixed md:sticky md:top-0 md:h-screen inset-y-0 left-0 z-40 w-72 shrink-0 transform transition-transform duration-500 ${
           aberto ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } bg-gradient-to-b from-blush to-petal border-r border-rose overflow-hidden`}
+        } bg-blush border-r border-dust/80 overflow-hidden`}
       >
         <Flores className="absolute w-36 -top-5 -right-5 -scale-x-100" />
         <div className="relative p-8 h-full flex flex-col">

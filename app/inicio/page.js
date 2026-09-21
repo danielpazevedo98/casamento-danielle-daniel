@@ -51,7 +51,7 @@ export default function Inicio() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden bg-petal px-10 py-14 md:py-20">
+        <section className="relative overflow-hidden px-10 pb-4 md:pb-8">
           <FotoMoldura fotos={EVENTO.fotosNoivos} alt="Danielle e Daniel" desenho="noivos" legenda="Foto dos noivos · em breve" prioridade />
           <Flores className="absolute w-32 md:w-40 bottom-0 right-0 rotate-180" />
         </section>

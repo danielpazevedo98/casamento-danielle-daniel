@@ -74,11 +74,11 @@ const DESENHOS = {
   ),
 };
 
-// Formatos da foto: "retrato" (2:3, fotos do casal) ou "quadrado" (locais).
+// Formatos da foto: "retrato" (2:3, fotos do casal), "quadrado" ou "paisagem".
 const FORMATOS = {
-  retrato: { caixa: "max-w-md", proporcao: "aspect-[2/3]", sizes: "(min-width: 768px) 28rem, 90vw" },
-  quadrado: { caixa: "max-w-sm", proporcao: "aspect-square", sizes: "(min-width: 768px) 24rem, 90vw" },
-  paisagem: { caixa: "max-w-xl", proporcao: "aspect-[3/2]", sizes: "(min-width: 768px) 36rem, 90vw" },
+  retrato: { caixa: "max-w-sm", proporcao: "aspect-[2/3]", sizes: "(min-width: 768px) 24rem, 85vw" },
+  quadrado: { caixa: "max-w-sm", proporcao: "aspect-square", sizes: "(min-width: 768px) 24rem, 85vw" },
+  paisagem: { caixa: "max-w-lg", proporcao: "aspect-[3/2]", sizes: "(min-width: 768px) 32rem, 90vw" },
 };
 
 // Foto com moldura deslocada. Com varias fotos, elas passam em carrossel.
@@ -86,9 +86,9 @@ const FORMATOS = {
 export function FotoMoldura({ src, fotos, alt, desenho = "noivos", legenda, prioridade = false, formato = "retrato" }) {
   const f = FORMATOS[formato];
   return (
-    <div className={`relative w-full ${f.caixa} mx-auto`}>
-      <div className="absolute -top-3 -left-3 md:-top-4 md:-left-4 w-full h-full border border-rose" aria-hidden="true" />
-      <div className={`relative w-full ${f.proporcao} overflow-hidden bg-gradient-to-br from-blush via-petal to-dust`}>
+    // Acabamento de quadro montado: margem clara em volta da foto e sombra leve.
+    <div className={`relative w-full ${f.caixa} mx-auto bg-carta p-2.5 md:p-3 border border-dust/70 shadow-[0_22px_45px_-32px_rgba(90,46,46,0.55)]`}>
+      <div className={`relative w-full ${f.proporcao} overflow-hidden border border-rose/30 bg-gradient-to-br from-blush via-petal to-dust`}>
         {fotos?.length ? (
           <CarrosselFotos fotos={fotos} alt={alt} sizes={f.sizes} />
         ) : src ? (

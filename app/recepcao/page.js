@@ -11,6 +11,7 @@ export default function Recepcao() {
       local={EVENTO.recepcao}
       desenho="festa"
       legendaFoto="Foto da casa de festas · em breve"
+      formatoFoto="paisagem"
     />
   );
 }

@@ -2,7 +2,7 @@ import Layout from "@/components/Layout";
 import { Cabecalho, Flores, FotoMoldura } from "@/components/Enfeites";
 
 // Layout comum de Cerimonia e Recepcao: cartao com as informacoes e, embaixo, a foto do local.
-export default function PaginaEvento({ sobre, titulo, local, desenho, legendaFoto }) {
+export default function PaginaEvento({ sobre, titulo, local, desenho, legendaFoto, formatoFoto = "quadrado" }) {
   return (
     <Layout>
       <div className="relative min-h-screen bg-blush px-6 md:px-16 pt-20 pb-16 md:py-16 overflow-hidden">
@@ -57,7 +57,7 @@ export default function PaginaEvento({ sobre, titulo, local, desenho, legendaFot
             </div>
 
             <div className="mt-14 md:mt-16 px-3 md:px-4">
-              <FotoMoldura src={local.foto} alt={local.local} desenho={desenho} legenda={legendaFoto} formato="quadrado" />
+              <FotoMoldura src={local.foto} alt={local.local} desenho={desenho} legenda={legendaFoto} formato={formatoFoto} />
             </div>
           </div>
         </div>
