@@ -75,15 +75,18 @@ function EditarPresente({ presente, onFechar, recarregar }) {
       <div className="w-32 mx-auto border border-dust">
         <IlustracaoPresente presente={f} />
       </div>
-      <div className="flex justify-center gap-2 mt-2">
+      <div className="flex justify-center gap-2 mt-3">
         <label className={`${cls.mini} cursor-pointer`}>
-          {enviandoFoto ? "Enviando..." : f.imagem_url ? "Trocar imagem" : "Enviar imagem"}
+          {enviandoFoto ? "Enviando..." : f.imagem_url ? "Trocar imagem" : "Escolher imagem do computador"}
           <input type="file" accept="image/*" className="hidden" onChange={enviarFoto} disabled={enviandoFoto} />
         </label>
         {f.imagem_url && (
           <button className={cls.mini} onClick={() => setF({ ...f, imagem_url: null })}>Usar o emoji</button>
         )}
       </div>
+      <p className={`${cls.sub} mt-2 text-center`}>
+        JPG, PNG ou WebP. A imagem é reduzida aqui mesmo antes de subir. Sem imagem, o presente mostra o emoji.
+      </p>
 
       <Rotulo htmlFor="p_nome">Nome</Rotulo>
       <input id="p_nome" className={cls.campo} value={f.nome} onChange={muda("nome")} />
@@ -105,7 +108,6 @@ function EditarPresente({ presente, onFechar, recarregar }) {
           <input id="p_emoji" className={`${cls.campo} text-center`} value={f.emoji} onChange={muda("emoji")} maxLength={8} />
         </div>
       </div>
-      <p className={`${cls.sub} mt-1`}>Preço sempre múltiplo de R$ 10.</p>
       <label className="flex items-center gap-2 mt-4 cursor-pointer">
         <input type="checkbox" className="w-4 h-4 accent-wine" checked={f.publicado} onChange={(e) => setF({ ...f, publicado: e.target.checked })} />
         Mostrar na lista do site
