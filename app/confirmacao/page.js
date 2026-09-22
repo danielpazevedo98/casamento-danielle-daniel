@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Layout from "@/components/Layout";
 import { Cabecalho } from "@/components/Enfeites";
-import PortaoVasco from "@/components/PortaoVasco";
 import { EVENTO } from "@/lib/evento";
 
 // A mensagem final reflete o que foi marcado: "presenças confirmadas" soava
@@ -149,7 +148,6 @@ export default function Confirmacao() {
             )}
           </Cabecalho>
 
-          <PortaoVasco>
           <div className="relative" ref={caixa}>
             <input
               type="text"
@@ -236,7 +234,6 @@ export default function Confirmacao() {
             </div>
           )}
           {!membros && erro && <p className="mt-4 font-sans text-sm text-fuchsia text-center">{erro}</p>}
-          </PortaoVasco>
         </div>
       </div>
     </Layout>
