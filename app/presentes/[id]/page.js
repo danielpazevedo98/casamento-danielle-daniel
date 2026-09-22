@@ -199,7 +199,15 @@ export default function PresenteDetalhes() {
                   </div>
                   <p className="mt-4 font-serif italic text-sm text-wine text-center leading-relaxed">
                     Pelo Pix o valor vai inteirinho para os noivos.
-                    {cartao && " No cartão, o Mercado Pago cobra uma taxinha, mas a gente fica feliz do mesmo jeito!"}
+                    {cartao && (
+                      <>
+                        {" "}
+                        <strong className="font-medium not-italic text-deep">
+                          No cartão, o Mercado Pago cobra uma taxinha, então o valor não chega inteiro.
+                        </strong>{" "}
+                        Mas a gente fica feliz do mesmo jeito!
+                      </>
+                    )}
                   </p>
                 </>
               ) : (

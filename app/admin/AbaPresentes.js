@@ -52,7 +52,7 @@ function EditarPresente({ presente, onFechar, recarregar }) {
     const nome = f.nome.trim();
     const preco = Number(String(f.preco).replace(",", "."));
     if (!nome) return falhou(aviso, "O nome é obrigatório");
-    if (!(preco > 0) || preco % 10 !== 0) return falhou(aviso, "O preço precisa ser um múltiplo de R$ 10");
+    if (!(preco > 0)) return falhou(aviso, "O preço precisa ser maior que zero");
     const registro = {
       nome,
       descricao: f.descricao.trim() || null,
@@ -92,7 +92,7 @@ function EditarPresente({ presente, onFechar, recarregar }) {
       <div className="grid grid-cols-[1fr_1fr_5rem] gap-3">
         <div>
           <Rotulo htmlFor="p_preco">Preço (R$)</Rotulo>
-          <input id="p_preco" inputMode="numeric" className={cls.campo} value={f.preco} onChange={muda("preco")} />
+          <input id="p_preco" inputMode="decimal" className={cls.campo} value={f.preco} onChange={muda("preco")} />
         </div>
         <div>
           <Rotulo htmlFor="p_cat">Categoria</Rotulo>
