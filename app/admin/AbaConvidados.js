@@ -13,6 +13,7 @@ function EditarConvidado({ convidado, dados, onFechar, recarregar }) {
     categoria: convidado?.categoria || "Família",
     lista: convidado?.lista || "Verde",
     grupo: convidado?.grupo_id ? String(convidado.grupo_id) : "",
+    cortesia: Boolean(convidado?.cortesia),
   });
   const muda = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
@@ -26,7 +27,7 @@ function EditarConvidado({ convidado, dados, onFechar, recarregar }) {
       if (r.error) return falhou(aviso, "Erro: " + r.error.message);
       grupoId = r.data.id;
     }
-    const registro = { nome, origem: f.origem, categoria: f.categoria, lista: f.lista, grupo_id: grupoId };
+    const registro = { nome, origem: f.origem, categoria: f.categoria, lista: f.lista, grupo_id: grupoId, cortesia: f.cortesia };
     const r = convidado
       ? await api("convidados", { method: "PATCH", corpo: { id: convidado.id, ...registro } })
       : await api("convidados", { method: "POST", corpo: registro });
@@ -73,6 +74,19 @@ function EditarConvidado({ convidado, dados, onFechar, recarregar }) {
           </option>
         ))}
       </select>
+      <label className="flex items-center gap-2 mt-4 cursor-pointer">
+        <input
+          type="checkbox"
+          className="w-4 h-4 accent-wine"
+          checked={f.cortesia}
+          onChange={(e) => setF({ ...f, cortesia: e.target.checked })}
+        />
+        Cortesia
+      </label>
+      <p className={`${cls.sub} mt-1`}>
+        Criança de até 8 anos. Confirma presença normalmente, mas não ocupa vaga no limite da festa. Aparece só aqui no
+        admin.
+      </p>
     </ModalAcao>
   );
 }
@@ -149,6 +163,7 @@ export default function AbaConvidados({ dados, recarregar }) {
             <tr key={c.id} className="hover:bg-blush/50">
               <td className={cls.td}>
                 <b>{c.nome}</b>
+                {c.cortesia && <span className="ml-2"><Tag tipo="destaque">cortesia</Tag></span>}
                 {junto.length > 0 && <div className={cls.sub}>com {junto.map((x) => x.nome).join(", ")}</div>}
               </td>
               <td className={`${cls.td} hidden md:table-cell`}>{c.grupo_id || "—"}</td>

@@ -4,7 +4,7 @@ import { escolher, falha, lerCorpo, ok } from "@/lib/adminApi";
 
 export const dynamic = "force-dynamic";
 
-const CAMPOS = ["nome", "origem", "categoria", "lista", "grupo_id", "presenca", "rsvp_em", "confirmado_por"];
+const CAMPOS = ["nome", "origem", "categoria", "lista", "grupo_id", "presenca", "rsvp_em", "confirmado_por", "cortesia"];
 
 export async function POST(request) {
   const negado = exigirAdmin(request);

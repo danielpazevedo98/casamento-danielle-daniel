@@ -1,4 +1,5 @@
 "use client";
+import { MAX_CONVIDADOS } from "@/lib/evento";
 import { dataHora, reais } from "@/lib/formato";
 import { Cartao, Secao, Tabela, Tag, TagPresenca, cls } from "./ui";
 
@@ -8,6 +9,13 @@ export default function AbaPainel({ dados, irPara }) {
   const verdes = dados.convidados.filter((c) => c.lista === "Verde");
   const vao = verdes.filter((c) => c.presenca === "vai").length;
   const nao = verdes.filter((c) => c.presenca === "nao_vai").length;
+
+  // Limite da festa. Cortesias (criancas ate 8 anos) nao entram na conta.
+  // Ocupa lugar quem ja disse que vai e quem ainda nao respondeu: enquanto a
+  // pessoa nao recusa, o lugar dela esta guardado.
+  const cortesias = verdes.filter((c) => c.cortesia).length;
+  const ocupando = verdes.filter((c) => !c.cortesia && c.presenca !== "nao_vai").length;
+  const vagas = MAX_CONVIDADOS - ocupando;
 
   const recebidos = dados.claims.filter((c) => c.status === "confirmado");
   const pixPendentes = dados.claims.filter((c) => c.status === "pendente" && c.metodo === "pix");
@@ -24,6 +32,18 @@ export default function AbaPainel({ dados, irPara }) {
 
   return (
     <section>
+      <Secao>LIMITE DA FESTA</Secao>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Cartao n={MAX_CONVIDADOS} r="MÁXIMO DE CONVIDADOS" />
+        <Cartao n={ocupando} r="OCUPANDO LUGAR · VÃO E AINDA NÃO RESPONDERAM" />
+        <Cartao
+          n={vagas}
+          r={vagas < 0 ? "PASSOU DO LIMITE" : "AINDA POSSO CONVIDAR · PÔR COMO VERDE"}
+          cor={vagas < 0 ? "text-red-800" : "text-green-800"}
+        />
+        <Cartao n={cortesias} r="CORTESIAS · NÃO CONTAM NO LIMITE" />
+      </div>
+
       <Secao>CONFIRMAÇÕES</Secao>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Cartao n={vao} r="VÃO COMPARECER" cor="text-green-800" />
