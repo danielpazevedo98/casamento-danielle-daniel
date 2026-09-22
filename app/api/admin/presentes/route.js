@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 const CAMPOS = ["nome", "descricao", "preco", "categoria", "emoji", "imagem_url", "publicado"];
 const MENSAGENS = {
   23505: "Já existe um presente com esse nome.",
-  23514: "O preço precisa ser um múltiplo de R$ 10.",
+  23514: "O preço precisa ser maior que zero.",
 };
 
 export async function POST(request) {
