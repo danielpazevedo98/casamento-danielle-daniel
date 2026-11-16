@@ -31,7 +31,6 @@ export default function PaginaEvento({ sobre, titulo, local, desenho, legendaFot
                 <div className="border-l border-dust">
                   <p className="text-xs tracking-[0.35em] text-fuchsia font-sans mb-2">HORÁRIO</p>
                   <p className="font-serif text-xl text-deep">{local.horario}</p>
-                  <p className="font-serif italic text-sm text-wine">pontualmente</p>
                 </div>
               </div>
 
